@@ -1,0 +1,50 @@
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    platform: h2
+    password: sa
+    url: jdbc:h2:mem:contact-db;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    validation-query: SELECT 1
+    schema: classpath:schema-h2.sql
+    data: classpath:data-h2.sql
+  h2:
+    console:
+      enabled: true # http://localhost:8080/h2-console
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+  thymeleaf:
+    cache: false
+    enabled: true
+server:
+  error:
+    whitelabel:
+      enabled: false
+org:
+  springframework:
+    web:
+      filter:
+        CorsFilter:
+logging:
+  level:
+    omr: DEBUG
+    org:
+      springframework: DEBUG
+      hibernate:
+        sql: DEBUG
+    root: INFO
+    #https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html#production-ready-endpoints-enabling-endpoints
+management:
+  endpoint:
+    shutdown:
+      enabled: true
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  server:
+    port: 9000
