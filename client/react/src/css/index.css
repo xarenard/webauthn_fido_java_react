@@ -1,0 +1,45 @@
+.numberCircle {
+    border-radius: 25%;
+    width: 16px;
+    height: 12px;
+    padding: 2px;
+
+    background: #fff;
+    border: 2px solid #666;
+    color: #666;
+    text-align: center;
+
+
+}
+
+.menuItem {
+    text-decoration: none;
+}
+
+ul.topnav {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: steelblue;
+}
+ul.topnav li {float: left;}
+
+ul.topnav li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+ul.topnav li a:hover:not(.active) {background-color: #111;}
+
+/*    ul.topnav li a.active {background-color: darkorange;}*/
+
+ul.topnav li.right {float: right;}
+
+button {
+    background-color: steelblue;
+    color: white;
+}

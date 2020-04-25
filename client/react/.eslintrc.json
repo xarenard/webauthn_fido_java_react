@@ -1,0 +1,19 @@
+{
+  "globals": {
+    "WEBAUTHN_SERVER_URL":"",
+    "WEBAUTHN_SERVER_PORT":""
+  },
+  "parser": "babel-eslint",
+  "plugins": [
+    "react"
+  ],
+  "rules": {
+    "no-undef": [ 1 ],
+    "no-console": "warn"
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "es6": true
+  }
+}
