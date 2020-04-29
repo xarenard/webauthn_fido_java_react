@@ -16,6 +16,7 @@
 
 package org.orquanet.webauthn.service;
 
+import org.orquanet.webauthn.crypto.KeyInfo;
 import org.orquanet.webauthn.repository.UserRepository;
 import org.orquanet.webauthn.repository.model.FidoCredential;
 import org.orquanet.webauthn.repository.model.FidoUser;
@@ -38,7 +39,9 @@ public class UserService {
     }
 
     public void saveCredential(AuthenticatorAttestation authenticatorAttestation,FidoUser fidoUser){
-        FidoCredential fidoCredential = FidoCredential.builder().cosePublicKey(authenticatorAttestation.getAttestation().getAuthenticatorData().getCredentialPublicKey())
+
+       KeyInfo keyInfo = authenticatorAttestation.getKeyInfo();
+        FidoCredential fidoCredential = FidoCredential.builder().publicKey(keyInfo.getPublicKey().getEncoded())
                 .credentialId(Base64.getEncoder().encodeToString(authenticatorAttestation.getAttestation().getAuthenticatorData().getCredentialId()))
                 .created(new Date())
                 .fidoUser(fidoUser)

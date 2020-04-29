@@ -16,14 +16,21 @@
 
 package org.orquanet;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import java.security.Security;
 
 @SpringBootApplication
 //@EnableJpaRepositories("org.orquanet.repository")
 public class Application {
 
 	public static void main(String[] args) {
+
+		if (Security.getProvider("BC") == null) {
+			Security.addProvider(new BouncyCastleProvider());
+		}
 		SpringApplication.run(Application.class, args);
 	}
 }

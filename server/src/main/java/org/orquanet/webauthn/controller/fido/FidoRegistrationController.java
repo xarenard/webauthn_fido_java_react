@@ -16,7 +16,8 @@
 
 package org.orquanet.webauthn.controller.fido;
 
-import org.orquanet.webauthn.controller.session.RegistrationSession;
+import org.orquanet.webauthn.controller.session.WebauthnSession;
+import org.orquanet.webauthn.controller.user.dto.UserDto;
 import org.orquanet.webauthn.repository.model.FidoUser;
 import org.orquanet.webauthn.service.UserService;
 import org.orquanet.webauthn.webauthn.attestation.constant.AttestationConveyancePreference;
@@ -26,11 +27,11 @@ import org.orquanet.webauthn.webauthn.attestation.data.*;
 import org.orquanet.webauthn.webauthn.attestation.exception.RegistrationException;
 import org.orquanet.webauthn.webauthn.attestation.model.AuthenticatorAttestation;
 import org.orquanet.webauthn.webauthn.attestation.reader.AuthenticatorAttestationReader;
-import org.orquanet.webauthn.webauthn.attestation.validation.clientdata.ClientDataRegistrationValidation;
-import org.orquanet.webauthn.webauthn.attestation.validation.signature.AttestationSignatureValidation;
+import org.orquanet.webauthn.webauthn.attestation.validation.AuthenticatorAttestationValidator;
 import org.orquanet.webauthn.webauthn.common.WebAuthnConfig;
 import org.orquanet.webauthn.webauthn.common.data.PublicKeyCredentialDescriptor;
 import org.orquanet.webauthn.webauthn.common.data.PublicKeyCredentialType;
+import org.orquanet.webauthn.webauthn.exception.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -38,38 +39,37 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.websocket.server.PathParam;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
 public class FidoRegistrationController  extends FidoController {
 
-    private ClientDataRegistrationValidation clientDataValidator;
-    private AttestationSignatureValidation attestationSignatureValidation;
     private AuthenticatorAttestationReader authenticatorAttestationReader;
+    private AuthenticatorAttestationValidator authenticatorAttestationValidator;
     private UserService userService;
     private WebAuthnConfig webAuthnConfig;
 
     private static final String REGISTRATION_SESSION_NAME = "registrationsession";
 
     public FidoRegistrationController(final AuthenticatorAttestationReader authenticatorAttestationReader,
-                                      final ClientDataRegistrationValidation clientDataValidator,
-                                      final AttestationSignatureValidation attestationSignatureValidation,
+                                      final AuthenticatorAttestationValidator authenticatorAttestationValidator,
                                       final UserService userService,
                                       final WebAuthnConfig webAuthnConfig) {
         this.authenticatorAttestationReader = authenticatorAttestationReader;
-        this.clientDataValidator = clientDataValidator;
-        this.attestationSignatureValidation = attestationSignatureValidation;
+        this.authenticatorAttestationValidator = authenticatorAttestationValidator;
         this.userService = userService;
         this.webAuthnConfig = webAuthnConfig;
     }
 
-    @CrossOrigin(origins = {"${webauthn.origins.allowed}"}, allowCredentials = "true", methods = RequestMethod.GET)
-    @RequestMapping(path = "/registration/init", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
-    public ResponseEntity<PublicKeyCredentialCreationOptions> register(HttpServletRequest request) {//@ModelAttribute("registrationsession") RegistrationSession registrationSession) {
+    @CrossOrigin(origins = {"${webauthn.origins.allowed}"}, allowCredentials = "true", methods = RequestMethod.POST)
+    @RequestMapping(path = "/registration/init", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.POST)
+    public ResponseEntity<PublicKeyCredentialCreationOptions> register(@RequestBody UserDto userDto, HttpServletRequest request) {//@ModelAttribute("registrationsession") RegistrationSession registrationSession) {
+
         // should be login or identification instead
-        Optional<FidoUser> fidoUserOptional = userService.findUser("johndoe@blabla.org");
-        FidoUser fidoUser = fidoUserOptional.orElseThrow(RegistrationException::new);
+        Optional<FidoUser> fidoUserOptional = userService.findUser(userDto.getEmail());
+        FidoUser fidoUser = fidoUserOptional.orElseThrow(UserNotFoundException::new);
         Set<PublicKeyCredentialDescriptor> allowCredentials = fidoUser
                 .getFidoCredentials()
                 .stream()
@@ -123,33 +123,37 @@ public class FidoRegistrationController  extends FidoController {
                 .timeOut(60000)
                 .build();
         // store in session - could be redis,...
-        initRegistrationSession(request, challenge, fidoUser);
+        initWebauthnSession(REGISTRATION_SESSION_NAME,request,challenge,fidoUser);
         return new ResponseEntity<>(publicKeyCredentialCreationOptions, HttpStatus.OK);
 
     }
 
     @CrossOrigin(origins = "${webauthn.origins.allowed}", allowCredentials = "true", methods = {RequestMethod.POST})
-    @PostMapping(path = "/registration/final", consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/registration/final/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public void registerFinal(@RequestBody AuthenticatorAttestationResponseWrapper authenticatorAttestationResponseWrapper, HttpServletRequest request) throws Exception {
+    public void registerFinal(@PathParam ("id") String id,@RequestBody AuthenticatorAttestationResponseWrapper authenticatorAttestationResponseWrapper, HttpServletRequest request) throws Exception {
 
         HttpSession session = request.getSession();
-        RegistrationSession registrationSession = (RegistrationSession) session.getAttribute(REGISTRATION_SESSION_NAME);
+        WebauthnSession webauthnSession = (WebauthnSession) session.getAttribute(REGISTRATION_SESSION_NAME);
         session.invalidate();
 
-        AuthenticatorAttestation authenticatorAttestation = authenticatorAttestationReader.read(authenticatorAttestationResponseWrapper);
-        clientDataValidator.validate(authenticatorAttestation.getClientDataJSON(), registrationSession.getChallenge());
-        attestationSignatureValidation.verify(authenticatorAttestation);
-        userService.saveCredential(authenticatorAttestation, registrationSession.getFidoUser());
+        String fidoId = webauthnSession.getFidoUser().getFidoId();
 
+        if(fidoId == null || fidoId.equals(id)){
+            throw new RegistrationException("Invalid Fido User Id");
+        }
+
+        AuthenticatorAttestation authenticatorAttestation = authenticatorAttestationReader.read(authenticatorAttestationResponseWrapper);
+
+        authenticatorAttestationValidator.validate(authenticatorAttestation, webauthnSession.getChallenge());
+        userService.saveCredential(authenticatorAttestation, webauthnSession.getFidoUser());
     }
 
     private void initRegistrationSession(HttpServletRequest request, String challenge, FidoUser fidoUser) {
-        RegistrationSession registrationSession = new RegistrationSession();
-        registrationSession.setChallenge(challenge);
-        registrationSession.setFidoUser(fidoUser);
+        WebauthnSession webauthnSession = new WebauthnSession();
+        webauthnSession.setChallenge(challenge);
+        webauthnSession.setFidoUser(fidoUser);
         HttpSession session = request.getSession(true);
-        session.setAttribute(REGISTRATION_SESSION_NAME, registrationSession);
+        session.setAttribute(REGISTRATION_SESSION_NAME, webauthnSession);
     }
-
 }

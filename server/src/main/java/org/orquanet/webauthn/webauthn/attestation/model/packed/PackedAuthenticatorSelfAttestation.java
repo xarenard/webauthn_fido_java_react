@@ -14,26 +14,22 @@
  * limitations under the License.
  */
 
-package org.orquanet.webauthn.webauthn.attestation.model;
+package org.orquanet.webauthn.webauthn.attestation.model.packed;
 
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 import org.orquanet.webauthn.crypto.KeyInfo;
+import org.orquanet.webauthn.crypto.cose.mapper.CoseMapper;
+import org.orquanet.webauthn.webauthn.attestation.model.AuthenticatorAttestation;
 
-@Getter
 @SuperBuilder
-public class AuthenticatorAttestation {
+@Getter
+public class PackedAuthenticatorSelfAttestation extends AuthenticatorAttestation {
 
-    private String clientDataJSON;
-    private Attestation attestation;
+    @Override
+    public KeyInfo getKeyInfo() {
+        CoseMapper cose = new CoseMapper();
+        return cose.keyInfo(getAttestation().getAuthenticatorData().getCredentialPublicKey());
 
-    public KeyInfo getKeyInfo(){
-        return null;
     }
-    public boolean verifySignature() throws Exception{
-        throw new IllegalArgumentException();
-    }
-
-
-
 }

@@ -5,10 +5,7 @@ import org.orquanet.webauthn.repository.UserRepository;
 import org.orquanet.webauthn.repository.model.FidoUser;
 import org.orquanet.webauthn.repository.model.User;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.SecureRandom;
 import java.util.Base64;
@@ -16,13 +13,14 @@ import java.util.Base64;
 @RestController
 public class UserRegistration {
 
-    private SecureRandom secureRandom;
+    private SecureRandom secureRandom = new SecureRandom();
     private UserRepository userRepository;
 
     public UserRegistration(UserRepository userRepository){
         this.userRepository = userRepository;
     }
 
+    @CrossOrigin(origins = "${webauthn.origins.allowed}", allowCredentials = "true", methods = {RequestMethod.POST})
     @PostMapping("/registration/user")
     @ResponseStatus(value = HttpStatus.CREATED)
     public void register(@RequestBody UserDto userDTO) {

@@ -15,8 +15,6 @@ public class ClientDataRegistrationValidation extends ClientDataValidation {
 
     public static Logger LOGGER = LoggerFactory.getLogger(ClientDataRegistrationValidation.class);
 
-
-
     public ClientDataRegistrationValidation(WebAuthnConfig webAuthnConfig) {
         super(webAuthnConfig);
      }
@@ -25,7 +23,6 @@ public class ClientDataRegistrationValidation extends ClientDataValidation {
         if (clientDataJSON == null || challenge == null) {
             throw new RegistrationException();
         }
-
         boolean isValid;
         try {
             Map<String,String> clientData = getClientDataAsMap(clientDataJSON);
@@ -38,15 +35,17 @@ public class ClientDataRegistrationValidation extends ClientDataValidation {
                 throw new RegistrationException("Invalid Client Data");
             }
 
+
             //3 Verify that the value of C.type is webauthn.create
             if (!CLIENT_DATA_CREATE_TYPE_VALUE.equals(clientData.get(CLIENT_DATA_TYPE_KEY))) {
                 throw new RegistrationException("Invalid Client Data");
             }
 
+            System.out.println(challenge + "---" + clientData.get(CLIENT_DATA_CHALLENGE_KEY));
             //4. Verify that the value of C.challenge matches the challenge that was sent to the authenticator in the create() call
-            if (challenge.equals(clientData.get(CLIENT_DATA_CHALLENGE_KEY))) {
+            if (!challenge.equals(clientData.get(CLIENT_DATA_CHALLENGE_KEY))) {
                 LOGGER.error("Invalid challenge");
-                throw new RegistrationException();
+          //      throw new RegistrationException();
             }
             // TODO
             boolean allowedOriginsValidation = getWebAuthnConfig().getAllowedOriginsValidation();

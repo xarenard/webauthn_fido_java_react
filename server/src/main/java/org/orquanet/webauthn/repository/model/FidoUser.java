@@ -34,12 +34,12 @@ public class FidoUser  {
     @Column(name="wa_id")
     private String fidoId;
 
-    @SequenceGenerator(name = "id", schema = "app",sequenceName = "wa_user_seq", allocationSize = 1)
+    @SequenceGenerator(name = "id", schema = "app",sequenceName = "user_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "id")
     @Id
     private Long id;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="user_id",referencedColumnName = "id")
     private User user;
 

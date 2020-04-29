@@ -16,8 +16,9 @@
 
 package org.orquanet.webauthn.controller.fido;
 
+import org.orquanet.webauthn.controller.session.WebauthnSession;
+import org.orquanet.webauthn.controller.user.dto.UserDto;
 import org.orquanet.webauthn.crypto.KeyInfo;
-import org.orquanet.webauthn.crypto.cose.mapper.CoseMapper;
 import org.orquanet.webauthn.repository.model.FidoCredential;
 import org.orquanet.webauthn.repository.model.FidoUser;
 import org.orquanet.webauthn.service.CredentialService;
@@ -34,6 +35,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.Set;
@@ -47,6 +53,8 @@ public class FidoAuthnAuthenticationController  extends FidoController {
     private CredentialService credentialService;
     private AuthenticatorAssertionReader authenticatorAssertionReader;
     private ClientDataAuthenticationValidation clientDataAuthenticationValidation;
+
+    public final String AUTHENTICATION_SESSION_NAME = "authentication_session";
 
     public FidoAuthnAuthenticationController(AssertionSignatureVerifier assertionSignatureVerifier,
                                              AuthenticatorAssertionReader authenticatorAssertionReader,
@@ -64,9 +72,10 @@ public class FidoAuthnAuthenticationController  extends FidoController {
     @CrossOrigin(origins = "${webauthn.origins.allowed}", allowCredentials = "true", methods = {RequestMethod.POST})
     @PostMapping(value = "/authenticate/init",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(value = HttpStatus.OK)
-    public PublicKeyCredentialRequestOptions authenticateInit(){
-        Optional<FidoUser> fidoUserOptional = userService.findUser("johndoe@blabla.org");
-        FidoUser fidoUser = fidoUserOptional.orElseThrow(() -> new AuthenticationException());
+    public PublicKeyCredentialRequestOptions authenticateInit(@RequestBody UserDto userDto,HttpServletRequest request){
+        String email = userDto.getEmail();
+        Optional<FidoUser> fidoUserOptional = userService.findUser(email);
+        FidoUser fidoUser = fidoUserOptional.orElseThrow(AuthenticationException::new);
 
         Set<PublicKeyCredentialDescriptor> allowCredentials = fidoUser
                                     .getFidoCredentials()
@@ -76,37 +85,56 @@ public class FidoAuthnAuthenticationController  extends FidoController {
                                              .id(c.getCredentialId()).type("public-key").build())
                                              .collect(Collectors.toSet());
 
+        String challenge = Base64.getEncoder().encodeToString(challenge());
+
+        initWebauthnSession(AUTHENTICATION_SESSION_NAME,request,challenge, fidoUser);
+
         return PublicKeyCredentialRequestOptions
                 .builder()
-                .challenge(Base64.getEncoder().encodeToString(challenge()))
+                .challenge(challenge)
                 .timeout(java.util.Optional.of(60000))
                 .allowCredentials(allowCredentials)
                 .build();
-
     }
 
 
     @CrossOrigin(origins = "${webauthn.origins.allowed}", allowCredentials = "true", methods = {RequestMethod.POST})
     @PostMapping(value = "/authenticate/final",produces = MediaType.APPLICATION_JSON_VALUE,consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public void authenticateFinal(@RequestBody AuthenticatorAssertion authenticatorAssertion){
+    public void authenticateFinal(@RequestBody AuthenticatorAssertion authenticatorAssertion, HttpServletRequest request){
+        //authenticatorAssertion.getResponse().getUserHandle()
+        HttpSession session = request.getSession();
+        WebauthnSession webauthnSession = (WebauthnSession) session.getAttribute(AUTHENTICATION_SESSION_NAME);
+        session.invalidate();
 
-        Optional<FidoUser> fidoUserOptional = userService.findUser("johndoe@blabla.org");
-        FidoUser fidoUser = fidoUserOptional.orElseThrow(RegistrationException::new);
+        FidoUser fidoUser = webauthnSession.getFidoUser();
+        String fidoId = fidoUser.getFidoId();
 
         authenticatorAssertionReader.readAuthData(authenticatorAssertion);
-        //clientDataAuthenticationValidation.validate(authenticatorAssertion.getResponse().getClientDataJSON(),'rr');
         String credentialId = authenticatorAssertion.getRawId();
-        Optional<FidoCredential> fidoCredentialOptional = credentialService.credential(credentialId,fidoUser.getFidoId());
+        Optional<FidoCredential> fidoCredentialOptional = credentialService.credential(credentialId,fidoId);
         FidoCredential fidoCredential = fidoCredentialOptional.orElseThrow(RegistrationException::new);
 
-        byte[] cosePublicKey = fidoCredential.getCosePublicKey();
-        CoseMapper coseMapper = new CoseMapper();
-        KeyInfo keyInfo = coseMapper.keyInfo(cosePublicKey);
+        byte[] publicKey = fidoCredential.getPublicKey();
 
-        assertionSignatureVerifier.verify(authenticatorAssertion,keyInfo);
+        try {
+            KeyFactory keyFactory = KeyFactory.getInstance("ECDSA","BC");
+            X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKey);
+            PublicKey pk = keyFactory.generatePublic(publicKeySpec);
+            KeyInfo keyInfo = KeyInfo.builder().publicKey(pk).build();
+            assertionSignatureVerifier.verify(authenticatorAssertion, keyInfo);
 
+        } catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
+    private void initAuthenticationSession(HttpServletRequest request, String challenge, FidoUser fidoUser) {
+        WebauthnSession webauthnSession = new WebauthnSession();
+        webauthnSession.setChallenge(challenge);
+        webauthnSession.setFidoUser(fidoUser);
+        HttpSession session = request.getSession(true);
+        session.setAttribute(AUTHENTICATION_SESSION_NAME, webauthnSession);
+    }
 
 }

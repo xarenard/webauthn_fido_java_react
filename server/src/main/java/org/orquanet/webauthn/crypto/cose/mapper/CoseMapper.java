@@ -84,7 +84,7 @@ public class CoseMapper {
                 byte[] y = (byte[]) coseKV.get(Y_POINT);
 
                 PublicKey publicKey = this.read(ecCurves.get(alg), x, y);
-                keyInfo = KeyInfo.builder().publicKey(publicKey).algoritm(ecCurves.get(alg)).build();
+                keyInfo = KeyInfo.builder().publicKey(publicKey).algorithm(ecCurves.get(alg)).build();
                 break;
             case 3:
                 throw new CoseException("RSA not supported");

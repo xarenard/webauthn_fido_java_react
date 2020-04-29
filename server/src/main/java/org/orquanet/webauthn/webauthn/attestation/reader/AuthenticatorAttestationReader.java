@@ -19,14 +19,14 @@ package org.orquanet.webauthn.webauthn.attestation.reader;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
+import org.orquanet.webauthn.webauthn.attestation.constant.AttestationStatementFormat;
 import org.orquanet.webauthn.webauthn.attestation.data.AttestationObject;
+import org.orquanet.webauthn.webauthn.attestation.data.AuthenticatorAttestationResponseWrapper;
 import org.orquanet.webauthn.webauthn.attestation.model.Attestation;
 import org.orquanet.webauthn.webauthn.attestation.model.AuthenticatorAttestation;
 import org.orquanet.webauthn.webauthn.attestation.model.AuthenticatorData;
 import org.orquanet.webauthn.webauthn.attestation.model.fido.Fido2fAuthenticatorAttestation;
-import org.orquanet.webauthn.webauthn.attestation.model.packed.PackedAuthenticatorAttestation;
-import org.orquanet.webauthn.webauthn.attestation.data.AuthenticatorAttestationResponseWrapper;
-import org.orquanet.webauthn.webauthn.attestation.constant.AttestationStatementFormat;
+import org.orquanet.webauthn.webauthn.attestation.model.packed.PackedAuthenticatorAttestationSupplier;
 import org.orquanet.webauthn.webauthn.common.authdata.AuthenticatorDataReader;
 
 import java.util.*;
@@ -60,10 +60,18 @@ public class AuthenticatorAttestationReader {
 
         switch (attestationStatementFormat) {
             case FIDOU2F:
-                authenticatorAttestation = Fido2fAuthenticatorAttestation.builder().attestation(attestation).clientDataJSON(clientDataJSON).build();
+                authenticatorAttestation = Fido2fAuthenticatorAttestation.builder()
+                        .attestation(attestation)
+                        .clientDataJSON(clientDataJSON)
+                        .build();
                 break;
             case PACKED:
-                authenticatorAttestation = PackedAuthenticatorAttestation.builder().attestation(attestation).clientDataJSON(clientDataJSON).build();
+                authenticatorAttestation = PackedAuthenticatorAttestationSupplier.builder()
+                        .attestation(attestation)
+                        .clientDataJson(clientDataJSON)
+                        .build()
+                        .get();
+                //authenticatorAttestation = PackedAuthenticatorSelfAttestation.builder().attestation(attestation).clientDataJSON(clientDataJSON).build();
                 break;
         }
         return authenticatorAttestation;

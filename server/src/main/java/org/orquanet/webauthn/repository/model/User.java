@@ -32,7 +32,8 @@ import javax.persistence.*;
 @Table(schema = "app",name = "user")
 public class User {
 
-
+    @SequenceGenerator(name = "id", schema = "app",sequenceName = "wa_user_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "id")
     @Id
     @Column(name="id")
     private Long id;

@@ -20,13 +20,11 @@ import lombok.Getter;
 import lombok.Setter;
 import org.orquanet.webauthn.repository.model.FidoUser;
 
-
 @Setter
 @Getter
+public class WebauthnSession {
 
-public class RegistrationSession {
-
-    public RegistrationSession(){
+    public WebauthnSession(){
         super();
     }
     private String challenge;

@@ -23,10 +23,11 @@ import org.orquanet.webauthn.webauthn.assertion.reader.AuthenticatorAssertionRea
 import org.orquanet.webauthn.webauthn.assertion.validation.clientdata.ClientDataAuthenticationValidation;
 import org.orquanet.webauthn.webauthn.assertion.validation.signature.AssertionSignatureVerifier;
 import org.orquanet.webauthn.webauthn.attestation.reader.AuthenticatorAttestationReader;
+import org.orquanet.webauthn.webauthn.attestation.validation.AuthenticatorAttestationValidator;
 import org.orquanet.webauthn.webauthn.attestation.validation.clientdata.ClientDataRegistrationValidation;
-import org.orquanet.webauthn.webauthn.attestation.validation.signature.AttestationSignatureValidation;
-import org.orquanet.webauthn.webauthn.attestation.validation.signature.fido2f.Fido2fAttestationSignatureValidator;
-import org.orquanet.webauthn.webauthn.attestation.validation.signature.packed.PackedAttestationSignatureValidator;
+import org.orquanet.webauthn.webauthn.attestation.validation.attestation.AttestationValidator;
+import org.orquanet.webauthn.webauthn.attestation.validation.attestation.fido2f.Fido2fAttestationValidator;
+import org.orquanet.webauthn.webauthn.attestation.validation.attestation.packed.PackedAttestationValidatorResolver;
 import org.orquanet.webauthn.webauthn.common.authdata.AuthenticatorDataReader;
 import org.orquanet.webauthn.webauthn.common.WebAuthnConfig;
 import org.springframework.beans.factory.annotation.Value;
@@ -103,18 +104,13 @@ public class FidoConfig {
     }
 
     @Bean
-    public AttestationSignatureValidation attestationSignatureValidation(){
-        return new AttestationSignatureValidation(fido2fAttestationSignatureValidator(),packedAttestationSignatureValidator());
+    public AttestationValidator attestationValidator(){
+        return new AttestationValidator(fido2fAttestationSignatureValidator(),packedAttestationValidatorResolver());
     }
 
     @Bean
-    public Fido2fAttestationSignatureValidator fido2fAttestationSignatureValidator(){
-        return new Fido2fAttestationSignatureValidator();
-    }
-
-    @Bean
-    public PackedAttestationSignatureValidator packedAttestationSignatureValidator() {
-        return new PackedAttestationSignatureValidator();
+    public Fido2fAttestationValidator fido2fAttestationSignatureValidator(){
+        return new Fido2fAttestationValidator();
     }
 
     @Bean
@@ -131,6 +127,7 @@ public class FidoConfig {
     public AuthenticatorAssertionReader authenticatorAssertionReader(){
         return new AuthenticatorAssertionReader(authenticatorDataReader());
     }
+
     @Bean
     public AuthenticatorDataReader authenticatorDataReader(){
         return new AuthenticatorDataReader(webAuthnConfig());
@@ -145,5 +142,14 @@ public class FidoConfig {
                 .relyingPartyId(relyingPartyId)
                 .relyingPartyName(relyingPartyName)
                 .build();
+    }
+
+    @Bean
+    public PackedAttestationValidatorResolver packedAttestationValidatorResolver(){
+        return new PackedAttestationValidatorResolver();
+    }
+    @Bean
+    public AuthenticatorAttestationValidator authenticatorAttestationValidator() {
+        return new AuthenticatorAttestationValidator(clientDataRegistrationValidator(),attestationValidator());
     }
 }

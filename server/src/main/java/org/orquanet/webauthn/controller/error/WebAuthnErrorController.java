@@ -17,6 +17,7 @@
 package org.orquanet.webauthn.controller.error;
 
 import org.orquanet.webauthn.webauthn.attestation.exception.RegistrationException;
+import org.orquanet.webauthn.webauthn.exception.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -60,6 +61,25 @@ public class WebAuthnErrorController {
                 .build();
 
         e.getConstraintViolations().forEach(c -> System.out.println(c.getMessage()));
+        if(LOGGER.isDebugEnabled()){
+            LOGGER.debug(e.getMessage());
+        }
+        return errorDetails;
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public ErrorDetails userNotFoundException(UserNotFoundException e){
+
+       // String message = opt.isPresent()?opt.get().getMessage(): "Unknown Error";
+        ErrorDetails errorDetails = ErrorDetails.builder()
+                .timeStamp(new Date())
+                .message("User Not Found")
+                .details("User Not Found")
+                .httpStatus(HttpStatus.NOT_FOUND.value())
+                .build();
+
         if(LOGGER.isDebugEnabled()){
             LOGGER.debug(e.getMessage());
         }

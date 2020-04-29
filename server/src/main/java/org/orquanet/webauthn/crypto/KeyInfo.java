@@ -26,13 +26,14 @@ import java.security.PublicKey;
 public class KeyInfo{
 
     private PublicKey publicKey;
-    private ECCurve algoritm;
+    private ECCurve algorithm;
+
     public PublicKey getPublicKey(){
         return this.publicKey;
     }
 
-    public ECCurve getAlgoritm(){
-        return algoritm;
+    public ECCurve getAlgorithm(){
+        return algorithm;
     }
 
 }

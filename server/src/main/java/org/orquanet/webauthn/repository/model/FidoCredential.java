@@ -52,6 +52,6 @@ public class FidoCredential {
     @Basic(fetch = FetchType.LAZY)
     @Lob
     @Column(name="wa_credential_key")
-    private byte[] cosePublicKey;
+    private byte[] publicKey;
 
 }

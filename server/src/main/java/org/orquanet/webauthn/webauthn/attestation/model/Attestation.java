@@ -35,6 +35,7 @@ public  class Attestation {
     private AttestationStatementFormat fmtEnum;
     private Optional<List<byte[]>> x5c;
 
+
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
