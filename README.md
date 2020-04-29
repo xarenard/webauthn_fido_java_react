@@ -11,6 +11,22 @@ The demo should support:
 * Packed Self-Attestation
 * packed Full-Attestation
 
+## Setup
+
+Currently, only localhost is supported
+
+### Server
+```
+cd server
+mvn spring-boot:run
+``
+
+### Client
+```
+cd client
+npm run-script dev
+```
+
 ## Images
 ### Authenticator registration
 
