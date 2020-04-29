@@ -19,7 +19,7 @@ Currently, only localhost is supported
 ```
 cd server
 mvn spring-boot:run
-``
+```
 
 ### Client
 ```
