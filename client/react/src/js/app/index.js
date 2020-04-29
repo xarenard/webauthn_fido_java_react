@@ -22,7 +22,6 @@ class App extends React.Component {
         this.authenticate = this.authenticate.bind(this);
         this.initialStateValues = this.initialStateValues.bind(this);
         this.resetState = this.resetState.bind(this);
-        this.handleIdChange = this.handleIdChange.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
         this.registerUser = this.registerUser.bind(this);
         this.state = this.initialStateValues();

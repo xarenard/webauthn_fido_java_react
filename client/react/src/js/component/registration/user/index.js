@@ -35,7 +35,7 @@ class UserRegistration extends React.Component {
                         <InputForm name="lastName" value={lastName} type="text" onChangeText={this.handleInputChange}/>
                     </div>
                     <div className="mt3" key="eeeaa">
-                        <label className="db fw6 lh-copy f6" htmlFor="First Name">Last Name</label>
+                        <label className="db fw6 lh-copy f6" htmlFor="First Name">First Name</label>
                         <InputForm name="firstName" value={firstName} type="text" onChangeText={this.handleInputChange}/>
                     </div>
                     <div className="mt3">
