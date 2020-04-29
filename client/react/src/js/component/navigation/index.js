@@ -7,7 +7,8 @@ const Navigation = () => {
         return (
             <ul className="topnav pl3">
                 <li><Link to="/">Home</Link></li>
-                <li ><Link to="/about">About</Link></li>
+                <li><Link to="/about">About</Link></li>
+                <li className="right"><a>Webauthn Fido Demo</a></li>
             </ul>
         );
 };

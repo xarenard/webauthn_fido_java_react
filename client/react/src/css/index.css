@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css?family=Raleway');
+
 .numberCircle {
     border-radius: 25%;
     width: 16px;
@@ -8,10 +10,11 @@
     border: 2px solid #666;
     color: #666;
     text-align: center;
-
-
 }
 
+body {
+    font-family: 'Raleway', cursive;
+}
 .menuItem {
     text-decoration: none;
 }
@@ -37,9 +40,32 @@ ul.topnav li a:hover:not(.active) {background-color: #111;}
 
 /*    ul.topnav li a.active {background-color: darkorange;}*/
 
-ul.topnav li.right {float: right;}
+ul.topnav li.right {float: right; font-size: 20px}
 
 button {
     background-color: steelblue;
     color: white;
+}
+
+#menu a:link {
+    color: #4e555b;
+    text-decoration: none;
+}
+
+/* visited link */
+#menu a:visited {
+    color: #4e555b;
+    text-decoration: none;
+}
+
+/* mouse over link */
+#menu a:hover {
+    color: #4e555b;
+    text-decoration: underline;
+}
+
+/* selected link */
+#menu a:active {
+    color: #4e555b;
+    text-decoration: none;
 }

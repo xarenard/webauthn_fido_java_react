@@ -1,7 +1,8 @@
 {
   "globals": {
     "WEBAUTHN_SERVER_URL":"",
-    "WEBAUTHN_SERVER_PORT":""
+    "WEBAUTHN_SERVER_PORT":"",
+    "DEFAULT_USER_EMAIL": ""
   },
   "parser": "babel-eslint",
   "plugins": [

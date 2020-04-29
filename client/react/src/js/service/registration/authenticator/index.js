@@ -1,12 +1,12 @@
 import axios from 'axios';
 
 
-const initRegistration = () => {
-    return axios.get(`${WEBAUTHN_SERVER_URL}:${WEBAUTHN_SERVER_PORT}/registration/init`,{withCredentials: true});
+const initRegistration = (data) => {
+    return axios.post(`${WEBAUTHN_SERVER_URL}:${WEBAUTHN_SERVER_PORT}/registration/init`,data,{withCredentials: true});
 };
 
-const finalizeRegistration = (data) => {
-    return axios.post(`${WEBAUTHN_SERVER_URL}:${WEBAUTHN_SERVER_PORT}/registration/final`,data,{
+const finalizeRegistration = (data,userId) => {
+    return axios.post(`${WEBAUTHN_SERVER_URL}:${WEBAUTHN_SERVER_PORT}/registration/final/${userId}`,data,{
         withCredentials: true,
         headers: {
             'Content-Type': 'application/json',

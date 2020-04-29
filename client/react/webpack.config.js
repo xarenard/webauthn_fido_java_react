@@ -78,7 +78,8 @@ const config = {
 		new ProgressBarPlugin(),
         new webpack.DefinePlugin({
             'WEBAUTHN_SERVER_URL':JSON.stringify("http://localhost"),
-			'WEBAUTHN_SERVER_PORT':JSON.stringify("8080")
+			'WEBAUTHN_SERVER_PORT':JSON.stringify("8080"),
+			'DEFAULT_USER_EMAIL':JSON.stringify('johndoe@blabla.org')
         })
 
 	]

@@ -2,7 +2,7 @@ import React from 'react';
 import 'tachyons';
 import Menu from '../component/menu';
 import DeviceRegistration from '../component/registration/authenticator';
-import {Route} from 'react-router';
+import {Route,Switch} from 'react-router';
 import {initRegistration, finalizeRegistration} from '../service/registration/authenticator';
 import Home from '../component/home';
 import '../../css/index.css';
@@ -10,17 +10,21 @@ import {base64ToArray, arrayToBase64} from '../codec';
 import Navigation from '../component/navigation';
 import Authentication from '../component/authentication';
 import {authenticationInit, authenticationFinalize} from '../service/authentication';
-
+import UserRegistration from '../component/registration/user';
+import {registerFidoUser} from "../service/registration/user";
 
 class App extends React.Component {
 
     constructor(props) {
         super(props);
         this.createCredential = this.createCredential.bind(this);
-        this.register = this.register.bind(this);
+        this.registerAuthenticator = this.registerAuthenticator.bind(this);
         this.authenticate = this.authenticate.bind(this);
         this.initialStateValues = this.initialStateValues.bind(this);
         this.resetState = this.resetState.bind(this);
+        this.handleIdChange = this.handleIdChange.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
+        this.registerUser = this.registerUser.bind(this);
         this.state = this.initialStateValues();
     }
 
@@ -28,16 +32,27 @@ class App extends React.Component {
         return {
             message: '',
             registrationStatus: 1,
-            authenticationStatus: 1
+            authenticationStatus: 1,
+            email: DEFAULT_USER_EMAIL,
+            user_email: '',
+            lastName: '',
+            firstName: ''
         };
     }
 
     resetState() {
-        this.setState(() => this.initialStateValues());
+        const stateValues = this.initialStateValues();
+        this.setState(() => ({...stateValues,
+            email: this.state.email,
+            user_email: this.state.user_email,
+            firstName: this.state.firstName,
+            lastName: this.state.lastName
+        }));
     }
 
     createCredential(publicKeyCredentials) {
         publicKeyCredentials.publicKey.challenge = base64ToArray(publicKeyCredentials.publicKey.challenge);
+        const userId = publicKeyCredentials.publicKey.user.id;
         publicKeyCredentials.publicKey.user.id = base64ToArray(publicKeyCredentials.publicKey.user.id);
 
         if (publicKeyCredentials.publicKey.excludeCredentials) {
@@ -63,7 +78,7 @@ class App extends React.Component {
                     type: newCredentialInfo.type
                 };
 
-                finalizeRegistration(data)
+                finalizeRegistration(data, userId)
                     .then(() => {
                         that.setState(() => ({'message': 'Device successfully registered.', 'registrationStatus': 0}));
                     }).catch(err => {
@@ -83,15 +98,24 @@ class App extends React.Component {
         if (!window.PasswordCredential) {
             this.setState(() => ({message: 'Browser not supported'}));
         } else {
-            authenticationInit().then(
+            const data = {email: this.state.email};
+
+            authenticationInit(data).then(
                 (res) => {
-
-                    const publicKey = res.data;
-                    publicKey.publicKey.challenge = base64ToArray(publicKey.publicKey.challenge);
-                    publicKey.publicKey.allowCredentials[0].id = base64ToArray(publicKey.publicKey.allowCredentials[0].id);
-
+                    const publicKeyCredentials = res.data;
+                    publicKeyCredentials.publicKey.challenge = base64ToArray(publicKeyCredentials.publicKey.challenge);
+                   // const userId = publicKeyCredentials.publicKey.user.id;
+                    if(publicKeyCredentials.publicKey.allowCredentials){
+                        publicKeyCredentials.publicKey.allowCredentials = publicKeyCredentials.publicKey.allowCredentials
+                            .map(ac => {
+                                    const obj = Object.assign({}, ac);
+                                    obj.id = base64ToArray(obj.id);
+                                    return obj;
+                                }
+                            );
+                    }
                     const that = this;
-                    navigator.credentials.get(publicKey)
+                    navigator.credentials.get(publicKeyCredentials)
                         .then(credential => {
                             const data = {
                                 id: credential.id,
@@ -122,20 +146,36 @@ class App extends React.Component {
         }
     }
 
-    register() {
+    registerUser(){
         this.setState(() => ({message: ''}));
+        registerFidoUser(
+            {email: this.state.user_email,
+                    lastName: this.state.lastName,
+                    firstName: this.state.firstName}
+        )
+
+    }
+
+    registerAuthenticator() {
+        this.setState(() => ({message: ''}));
+        console.log(this.state.email);
         if (!window.PasswordCredential) {
             this.setState(() => ({message: 'Browser not supported'}));
         } else {
-            initRegistration()
+            const data = {email: this.state.email};
+            initRegistration(data)
                 .then((response) => {
                     this.createCredential(response.data);
                 })
                 .catch(err => {
-                    this.setState(() => ({'message': err.message}));
+                    this.setState(() => ({'message': `${err.message} - ${err.response.data.message}`}));
                 });
         }
     };
+
+    handleInputChange(inputName, inputValue){
+        this.setState(() => ({[inputName]: inputValue}))
+    }
 
     render() {
         return (
@@ -144,14 +184,27 @@ class App extends React.Component {
                 <div className='fl w-100 pt4'>
                     <div className='fl w-30'><Menu init={this.resetState}/></div>
                     <div className='fl w-60'>
+                        <Switch>
                         <Route exact path='/' component={() => <Home/>}/>
-                        <Route exact path='/device' component={() => <DeviceRegistration register={this.register}
+                        <Route exact path='/user' render={() => <UserRegistration  registerUser={this.registerUser}
+                                                                                        handleUserInput={this.handleInputChange}
+                                                                                        email={this.state.user_email}
+                                                                                        lastName = {this.state.lastName}
+                                                                                        firstName = {this.state.firstName}
+                        />} />
+                        <Route exact path='/device' render={() => <DeviceRegistration register={this.registerAuthenticator}
                                                                                          message={this.state.message}
-                                                                                         registrationStatus={this.state.registrationStatus}/>}/>
+                                                                                         email={this.state.user_email ===''?this.state.email:this.state.user_email}
+                                                                                         registrationStatus={this.state.registrationStatus}
+                                                                                         handleUserInput={this.handleInputChange}
+                        />}/>
                         <Route exact path='/authentication'
-                               component={() => <Authentication authenticate={this.authenticate}
+                               render={() => <Authentication authenticate={this.authenticate}
                                                                 message={this.state.message}
+                                                                email={this.state.user_email ===''?this.state.email:this.state.user_email}
+                                                                handleIdChange={this.handleIdChange}
                                                                 authenticationStatus={this.state.authenticationStatus}/>}/>
+                        </Switch>
                     </div>
                 </div>
             </div>);

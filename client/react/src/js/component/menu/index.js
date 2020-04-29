@@ -15,9 +15,9 @@ class Menu extends React.Component {
     render(){
         return(
             <div id="menu" className="pl3">
-                <div className="pt1"><Link to="/user" onClick={this.reset}>1. Register user</Link></div>
-                <div className="pt1"><Link to="/device" onClick={this.reset}>2. Register Device</Link></div>
-                <div className="pt1"><Link to="/authentication" onClick={this.reset}>3. Authenticate</Link></div>
+                <div className="pt1 mv2"><Link to="/user" onClick={this.reset}>Register User</Link></div>
+                <div className="pt1 mv2"><Link to="/device" onClick={this.reset}>Register Authenticator</Link></div>
+                <div className="pt1"><Link to="/authentication" onClick={this.reset}>Authenticate</Link></div>
             </div>
         )
     }

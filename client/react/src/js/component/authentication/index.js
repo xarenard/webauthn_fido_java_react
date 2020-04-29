@@ -1,10 +1,12 @@
 import React from 'react';
+import InputForm from "../forms/InputForm";
 
 class Authentication extends React.Component {
 
     constructor(props) {
         super(props);
         this.authenticateClick = this.authenticateClick.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
     }
 
     authenticateClick(e) {
@@ -12,8 +14,13 @@ class Authentication extends React.Component {
         this.props.authenticate();
     }
 
+    handleInputChange(e){
+        e.preventDefault();
+        this.props.handleUserInput(e.target.name, e.target.value);
+    }
+
     render(){
-        const {message, authenticationStatus} = this.props;
+        const {message, authenticationStatus,email} = this.props;
         return (
             <div>
                 <form className="measure">
@@ -21,8 +28,7 @@ class Authentication extends React.Component {
                         <legend className="f4 fw6 ph0 mh0">Authentication</legend>
                         <div className="mt3">
                             <label className="db fw6 lh-copy f6" htmlFor="email-address">Email</label>
-                            <input className="pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100"
-                                   type="email" name="email-address"  id="email-address" />
+                            <InputForm name="user_email" value={email} type="email" onChangeText={this.handleInputChange}/>
                         </div>
                     </fieldset>
                     <div>
