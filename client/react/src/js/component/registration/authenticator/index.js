@@ -26,7 +26,7 @@ class DeviceRegistration extends React.Component {
 
                 <form className="measure" key="registration_authenticator_form">
                     <fieldset id="sign_up" className="ba b--transparent ph0 mh0">
-                        <legend className="f4 fw6 ph0 mh0">Register Device</legend>
+                        <legend className="f4 fw6 ph0 mh0">Register Authenticator</legend>
                         <div className="mt3" key="ppp">
                             <label className="db fw6 lh-copy f6" htmlFor="email-address">Email</label>
                             <InputForm name="user_email" value={email} type="email" onChangeText={this.handleInputChange}/>
