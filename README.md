@@ -2,9 +2,9 @@
 
 ## Intro
 
-Simple Demo of Webauthn with:
-* Server Side component using java Spring boot
-* Client Side component using React.js
+Simple Webauthn Demo with:
+* Server Side component using java Spring boot.
+* Client Side component using React.js.
 
 The demo should support:
 * TouchId
