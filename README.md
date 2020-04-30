@@ -33,6 +33,8 @@ npm run-script dev
 
 ![alt text](https://raw.githubusercontent.com/xarenard/webauthn_fido_java_react/master/doc/images/registration_authenticator.png)
 
+![alt text](https://raw.githubusercontent.com/xarenard/webauthn_fido_java_react/master/doc/images/registration_authenticator_prompt.png)
+
 ## Useful and interesting links
 [https://medium.com/@herrjemand](https://medium.com/@herrjemand)  
 [https://github.com/koesie10/webauthn](https://github.com/koesie10/webauthn)
