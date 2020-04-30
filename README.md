@@ -24,6 +24,7 @@ mvn spring-boot:run
 ### Client
 ```
 cd client
+npm install
 npm run-script dev
 ```
 
