@@ -77,7 +77,6 @@ public class PackedFullAttestationValidator implements PackedAttestationValidato
 
 
             byte[] idFidoGenCeAaguid = x509Certificate.getExtensionValue("1.3.6.1.4.1.45724.1.1.4");
-            System.out.println(idFidoGenCeAaguid.length);
             // if(!Arrays.equals(idFidoGenCeAaguid,aaguid)){
             //   throw new X5cValidationException("Invalid aaguid");
             //}

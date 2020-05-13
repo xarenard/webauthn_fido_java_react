@@ -40,8 +40,7 @@ public class UserService {
 
     public void saveCredential(AuthenticatorAttestation authenticatorAttestation,FidoUser fidoUser){
 
-       KeyInfo keyInfo = authenticatorAttestation.getKeyInfo();
-        System.out.println(keyInfo.getCoseAlgorithm());
+        KeyInfo keyInfo = authenticatorAttestation.getKeyInfo();
         FidoCredential fidoCredential = FidoCredential.builder()
                 .publicKey(keyInfo.getPublicKey().getEncoded())
                 .credentialId(Base64.getEncoder().encodeToString(authenticatorAttestation.getAttestation().getAuthenticatorData().getCredentialId()))

@@ -49,6 +49,7 @@ public class CoseMapper {
     private static final String N = "-1";
     private static final String E = "-2";
 
+
     private static final Logger LOGGER = LoggerFactory.getLogger(CoseMapper.class);
     private ObjectMapper mapper = new ObjectMapper(new CBORFactory());
     private Map<Integer, ECCurve> ecCurves = new HashMap();
@@ -87,9 +88,10 @@ public class CoseMapper {
                 byte[] y = (byte[]) coseKV.get(Y_POINT);
 
                 PublicKey publicKey = this.ecPublicKey(ecCurves.get(alg), x, y);
+                ECCurve ecCurve = ecCurves.get(alg);
 
-                // hardcoded
-                CoseAlgorithm coseAlgorithm = CoseAlgorithm.ES256;
+                CoseAlgorithm coseAlgorithm = ecCurveToCoseAlgorithm(ecCurve);
+
                 keyInfo = KeyInfo.builder()
                         .publicKey(publicKey)
                         .coseAlgorithm(coseAlgorithm)
@@ -142,6 +144,7 @@ public class CoseMapper {
         if(curve == null || x == null || y == null){
             throw new IllegalArgumentException("Invalid Argument");
         }
+
         PublicKey key;
         try {
             BigInteger xPoint = new BigInteger(x);
@@ -158,5 +161,24 @@ public class CoseMapper {
             throw new CoseException(e);
         }
         return key;
+    }
+
+    private CoseAlgorithm ecCurveToCoseAlgorithm(ECCurve ecCurve){
+        CoseAlgorithm coseAlgorithm;
+        switch (ecCurve){
+            case P256:
+                coseAlgorithm = CoseAlgorithm.ES256;
+                break;
+            case P384:
+                coseAlgorithm = CoseAlgorithm.ES384;
+                break;
+            case P521:
+                coseAlgorithm = CoseAlgorithm.ES512;
+                break;
+            default:
+                throw new CoseException("Invalid EC Curve");
+
+        }
+        return  coseAlgorithm;
     }
 }

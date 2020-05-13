@@ -96,8 +96,8 @@ public class AuthenticatorAttestationReader {
         String signature = attestationObject.getAttestationStatement().getSig();
         AttestationStatementFormat fmtEnum = attestationObject.getFmt();
         List<byte[]> x5c = attestationObject.getAttestationStatement().getX5c();
+
         int coseAlgorithmValue = attestationObject.getAttestationStatement().getAlg();
-        System.out.println("------" + coseAlgorithmValue);
         CoseAlgorithm coseAlgorithm = coseAlgorithms.get(coseAlgorithmValue);
         if(coseAlgorithm == null) {
             throw new AttestationFormatException("Invalid Argument");

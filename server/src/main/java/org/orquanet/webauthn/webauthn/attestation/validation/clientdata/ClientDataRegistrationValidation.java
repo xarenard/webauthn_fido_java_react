@@ -41,7 +41,6 @@ public class ClientDataRegistrationValidation extends ClientDataValidation {
                 throw new RegistrationException("Invalid Client Data");
             }
 
-            System.out.println(challenge + "---" + clientData.get(CLIENT_DATA_CHALLENGE_KEY));
             //4. Verify that the value of C.challenge matches the challenge that was sent to the authenticator in the create() call
             if (!challenge.equals(clientData.get(CLIENT_DATA_CHALLENGE_KEY))) {
                 LOGGER.error("Invalid challenge");

@@ -8,7 +8,10 @@ public enum CoseAlgorithm {
     RS512(-259, "RSASSA-PKCS1-v1_5 w/ SHA-512", MessageDigestAlgorithms.SHA_512,"SHA512withRSA","RSA"),
     RS384(-258, "RSASSA-PKCS1-v1_5 w/ SHA-384", MessageDigestAlgorithms.SHA_384,"SHA384withRSA","RSA"),
     RS256(-257, "RSASSA-PKCS1-v1_5 w/ SHA-256", MessageDigestAlgorithms.SHA_256,"SHA256withRSA","RSA"),
-    ES256(-7,"ECDSA w/ SHA-256",MessageDigestAlgorithms.SHA_256,"SHA256withECDSA","ECDSA");
+    ES256(-7,"ECDSA w/ SHA-256",MessageDigestAlgorithms.SHA_256,"SHA256withECDSA","ECDSA"),
+    ES384(-35,"ECDSA w/ SHA-384",MessageDigestAlgorithms.SHA_256,"SHA384withECDSA","ECDSA"),
+    ES512(-36,"ECDSA w/ SHA-512",MessageDigestAlgorithms.SHA_256,"SHA512withECDSA","ECDSA");
+
 
     private int value;
     private String description;
