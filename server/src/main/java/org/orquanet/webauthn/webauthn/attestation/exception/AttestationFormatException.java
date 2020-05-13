@@ -17,22 +17,9 @@
 package org.orquanet.webauthn.webauthn.attestation.exception;
 
 public class AttestationFormatException extends AttestationException {
-    public AttestationFormatException() {
-    }
 
     public AttestationFormatException(String message) {
         super(message);
     }
 
-    public AttestationFormatException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public AttestationFormatException(Throwable cause) {
-        super(cause);
-    }
-
-    public AttestationFormatException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
 }

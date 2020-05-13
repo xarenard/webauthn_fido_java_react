@@ -18,6 +18,8 @@ package org.orquanet.webauthn.webauthn.attestation.validation.attestation.fido2f
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.orquanet.webauthn.crypto.KeyInfo;
+import org.orquanet.webauthn.crypto.KeyType;
+import org.orquanet.webauthn.crypto.cose.CoseAlgorithm;
 import org.orquanet.webauthn.crypto.cose.ec.constant.ECCurve;
 import org.orquanet.webauthn.crypto.cose.mapper.CoseMapper;
 import org.orquanet.webauthn.crypto.signature.SignatureVerifier;
@@ -42,35 +44,30 @@ import java.util.Base64;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class Fido2fAttestationValidator implements Function<AuthenticatorAttestation,Boolean> {
+public class Fido2fAttestationValidator  {
 
 
     @Autowired
     @Qualifier("base64urldecoder")
     private Base64.Decoder base64Decoder;
 
-    public static Logger LOGGER = LoggerFactory.getLogger(Fido2fAttestationValidator.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(Fido2fAttestationValidator.class);
 
-    @Override
-    public Boolean apply(AuthenticatorAttestation authenticatorAttestation) {
-        return this.verify(authenticatorAttestation);
-    }
-
-    public boolean verify(AuthenticatorAttestation authenticatorAttestation) {
+    public void verify(AuthenticatorAttestation authenticatorAttestation) {
         if (authenticatorAttestation == null) {
             throw new IllegalArgumentException();
         }
-
-        boolean isValidSignature = Boolean.FALSE;
 
         try {
             Attestation attestation = authenticatorAttestation.getAttestation();
             String clientDataJSON = authenticatorAttestation.getClientDataJSON();
             CoseMapper cose = new CoseMapper();
-            KeyInfo keyinfo = cose.keyInfo(attestation.getAuthenticatorData().getCredentialPublicKey());
-
-            BigInteger x = ((ECPublicKey) (keyinfo.getPublicKey())).getW().getAffineX();
-            BigInteger y = ((ECPublicKey) (keyinfo.getPublicKey())).getW().getAffineY();
+            KeyInfo credentialKeyInfo = cose.keyInfo(attestation.getAuthenticatorData().getCredentialPublicKey());
+            if(! KeyType.ECDSA.equals(credentialKeyInfo.getKeyType())){
+                throw new AttestationValidationException("Non Compatible key type. Only ECDSA is supported");
+            }
+            BigInteger x = ((ECPublicKey) (credentialKeyInfo.getPublicKey())).getW().getAffineX();
+            BigInteger y = ((ECPublicKey) (credentialKeyInfo.getPublicKey())).getW().getAffineY();
 
             ByteArrayOutputStream ansiPublicKeyOutputStream = new ByteArrayOutputStream();
             ansiPublicKeyOutputStream.write(0x04);
@@ -97,9 +94,15 @@ public class Fido2fAttestationValidator implements Function<AuthenticatorAttesta
                 X509Certificate x509Certificate = X509Utils.x509CertificateFromBytesArray(op.get());
                 verificationPublicKey = x509Certificate.getPublicKey();
             }
-            KeyInfo keyInfo = KeyInfo.builder().publicKey(verificationPublicKey).algorithm(ECCurve.P256).build();
+            KeyInfo keyInfo = KeyInfo.builder()
+                    .publicKey(verificationPublicKey)
+                    .coseAlgorithm(CoseAlgorithm.ES256)
+                    .build();
             SignatureVerifier signatureVerifierObject = new SignatureVerifier();
-            isValidSignature = signatureVerifierObject.validate(verificationData, Base64.getDecoder().decode(attestation.getSignature()), keyInfo);
+            boolean isValidSignature = signatureVerifierObject.validate(verificationData, Base64.getDecoder().decode(attestation.getSignature()), keyInfo);
+            if(!isValidSignature){
+                throw new AttestationValidationException("Invalid Signature");
+            }
         } catch (IOException | NoSuchAlgorithmException | CertificateException e) {
             LOGGER.error(e.getMessage());
             throw new AttestationValidationException(e);
@@ -107,7 +110,6 @@ public class Fido2fAttestationValidator implements Function<AuthenticatorAttesta
             LOGGER.error(e.getMessage());
             throw new AttestationValidationException(e);
         }
-        return isValidSignature;
     }
 
 

@@ -27,8 +27,6 @@ import java.util.Base64;
 
 @Builder
 @Getter
-
-
 public class AuthenticatorData {
 
     private byte[] rpidHash;

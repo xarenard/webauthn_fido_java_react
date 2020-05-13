@@ -20,6 +20,7 @@ package org.orquanet.webauthn.webauthn.attestation.validation.attestation;
 import org.orquanet.webauthn.webauthn.attestation.constant.AttestationStatementFormat;
 import org.orquanet.webauthn.webauthn.attestation.exception.AttestationFormatException;
 import org.orquanet.webauthn.webauthn.attestation.model.AuthenticatorAttestation;
+import org.orquanet.webauthn.webauthn.attestation.validation.attestation.tpm.TPMAttestationValidator;
 import org.orquanet.webauthn.webauthn.attestation.validation.exception.AttestationValidationException;
 import org.orquanet.webauthn.webauthn.attestation.validation.attestation.fido2f.Fido2fAttestationValidator;
 import org.orquanet.webauthn.webauthn.attestation.validation.attestation.packed.PackedAttestationValidatorResolver;
@@ -28,11 +29,14 @@ public class AttestationValidator {
 
     private Fido2fAttestationValidator fido2FAttestationValidator;
     private PackedAttestationValidatorResolver packedAttestationValidatorResolver;
+    private TPMAttestationValidator tpmAttestationValidator;
 
     public AttestationValidator(final Fido2fAttestationValidator fido2FAttestationValidator,
-                                final PackedAttestationValidatorResolver packedAttestationValidatorResolver) {
+                                final PackedAttestationValidatorResolver packedAttestationValidatorResolver,
+                                final TPMAttestationValidator tpmAttestationValidator) {
         this.fido2FAttestationValidator = fido2FAttestationValidator;
         this.packedAttestationValidatorResolver = packedAttestationValidatorResolver;
+        this.tpmAttestationValidator = tpmAttestationValidator;
     }
 
     public void verify(AuthenticatorAttestation authenticatorAttestation) {
@@ -41,17 +45,16 @@ public class AttestationValidator {
         AttestationStatementFormat attFmt = authenticatorAttestation.getAttestation().getFmtEnum();
         switch (attFmt) {
             case PACKED:
-                isValid = packedAttestationValidatorResolver.resolve(authenticatorAttestation).verify(authenticatorAttestation);
+                packedAttestationValidatorResolver.resolve(authenticatorAttestation).verify(authenticatorAttestation);
                 break;
             case FIDOU2F:
-                isValid = fido2FAttestationValidator.verify(authenticatorAttestation);
+                fido2FAttestationValidator.verify(authenticatorAttestation);
+                break;
+            case TPM:
+                tpmAttestationValidator.verify(authenticatorAttestation);
                 break;
             default:
                 throw new AttestationFormatException("Attestation Format Not Supported");
-        }
-
-        if (!isValid) {
-            throw new AttestationValidationException("Invalid Attestation Signature");
         }
     }
 

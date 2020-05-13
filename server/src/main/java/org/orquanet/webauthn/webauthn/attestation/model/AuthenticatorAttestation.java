@@ -30,10 +30,5 @@ public class AuthenticatorAttestation {
     public KeyInfo getKeyInfo(){
         return null;
     }
-    public boolean verifySignature() throws Exception{
-        throw new IllegalArgumentException();
-    }
-
-
 
 }

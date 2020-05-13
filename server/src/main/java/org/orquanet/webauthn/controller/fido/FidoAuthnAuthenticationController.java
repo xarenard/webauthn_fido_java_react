@@ -19,6 +19,7 @@ package org.orquanet.webauthn.controller.fido;
 import org.orquanet.webauthn.controller.session.WebauthnSession;
 import org.orquanet.webauthn.controller.user.dto.UserDto;
 import org.orquanet.webauthn.crypto.KeyInfo;
+import org.orquanet.webauthn.crypto.cose.CoseAlgorithm;
 import org.orquanet.webauthn.repository.model.FidoCredential;
 import org.orquanet.webauthn.repository.model.FidoUser;
 import org.orquanet.webauthn.service.CredentialService;
@@ -41,6 +42,7 @@ import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -52,21 +54,16 @@ public class FidoAuthnAuthenticationController  extends FidoController {
     private UserService userService;
     private CredentialService credentialService;
     private AuthenticatorAssertionReader authenticatorAssertionReader;
-    private ClientDataAuthenticationValidation clientDataAuthenticationValidation;
-
-    public final String AUTHENTICATION_SESSION_NAME = "authentication_session";
+    private final String AUTHENTICATION_SESSION_NAME = "authentication_session";
 
     public FidoAuthnAuthenticationController(AssertionSignatureVerifier assertionSignatureVerifier,
                                              AuthenticatorAssertionReader authenticatorAssertionReader,
                                              UserService userService,
-                                             CredentialService credentialService,
-                                             ClientDataAuthenticationValidation clientDataAuthenticationValidation){
+                                             CredentialService credentialService){
         this.authenticatorAssertionReader = authenticatorAssertionReader;
         this.assertionSignatureVerifier = assertionSignatureVerifier;
         this.userService = userService;
         this.credentialService = credentialService;
-        this.clientDataAuthenticationValidation = clientDataAuthenticationValidation;
-       // this.clientDataValidation = clientDataValidation;
     }
 
     @CrossOrigin(origins = "${webauthn.origins.allowed}", allowCredentials = "true", methods = {RequestMethod.POST})
@@ -97,7 +94,6 @@ public class FidoAuthnAuthenticationController  extends FidoController {
                 .build();
     }
 
-
     @CrossOrigin(origins = "${webauthn.origins.allowed}", allowCredentials = "true", methods = {RequestMethod.POST})
     @PostMapping(value = "/authenticate/final",produces = MediaType.APPLICATION_JSON_VALUE,consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
@@ -115,18 +111,7 @@ public class FidoAuthnAuthenticationController  extends FidoController {
         Optional<FidoCredential> fidoCredentialOptional = credentialService.credential(credentialId,fidoId);
         FidoCredential fidoCredential = fidoCredentialOptional.orElseThrow(RegistrationException::new);
 
-        byte[] publicKey = fidoCredential.getPublicKey();
-
-        try {
-            KeyFactory keyFactory = KeyFactory.getInstance("ECDSA","BC");
-            X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKey);
-            PublicKey pk = keyFactory.generatePublic(publicKeySpec);
-            KeyInfo keyInfo = KeyInfo.builder().publicKey(pk).build();
-            assertionSignatureVerifier.verify(authenticatorAssertion, keyInfo);
-
-        } catch(Exception e){
-            e.printStackTrace();
-        }
+        assertionSignatureVerifier.verify(authenticatorAssertion, fidoCredential);
     }
 
     private void initAuthenticationSession(HttpServletRequest request, String challenge, FidoUser fidoUser) {

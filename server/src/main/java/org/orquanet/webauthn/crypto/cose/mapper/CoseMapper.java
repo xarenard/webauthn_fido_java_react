@@ -15,10 +15,10 @@
  */
 
 package org.orquanet.webauthn.crypto.cose.mapper;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 import org.orquanet.webauthn.crypto.KeyInfo;
+import org.orquanet.webauthn.crypto.cose.CoseAlgorithm;
 import org.orquanet.webauthn.crypto.cose.ec.constant.ECCurve;
 import org.orquanet.webauthn.crypto.cose.exception.CoseException;
 import org.slf4j.Logger;
@@ -35,19 +35,22 @@ import java.util.stream.Collectors;
 
 import static java.util.EnumSet.allOf;
 
+/**
+ * https://www.iana.org/assignments/cose/cose.xhtml
+ */
 public class CoseMapper {
 
-    public static final String KTY_KEY = "1";
-    public static final String ALG_KEY = "-1";
-    public static final String X_POINT = "-2";
-    public static final String Y_POINT = "-3";
+    private static final String KTY_KEY = "1";
+    private static final String ALG_KEY = "-1";
+    private static final String X_POINT = "-2";
+    private static final String Y_POINT = "-3";
+    private static final String N = "-1";
+    private static final String E = "-2";
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(CoseMapper.class);
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(CoseMapper.class);
     private ObjectMapper mapper = new ObjectMapper(new CBORFactory());
-
     private Map<Integer, ECCurve> ecCurves = new HashMap();
-
+    private Map<Integer, CoseAlgorithm> coseAlgorithms;
 
     public CoseMapper() {
         ecCurves.putAll(allOf(ECCurve.class)
@@ -55,17 +58,13 @@ public class CoseMapper {
                 .collect(Collectors.toMap(ECCurve::coseId, Function.identity())));
     }
 
-
     public KeyInfo keyInfo(byte[] coseKey) {
-
         KeyInfo keyInfo = null;
-
         Map<String, ?> coseKV = toKV(coseKey);
 
         if(!coseKV.containsKey(KTY_KEY)){
             throw new CoseException("Missing Kty Key");
         }
-
         Integer ktyId = (Integer) coseKV.get(KTY_KEY);
 
         switch (ktyId) {
@@ -73,26 +72,44 @@ public class CoseMapper {
                 throw new CoseException("OPK not supported");
             case 2:
                 Integer alg = (Integer) coseKV.get(ALG_KEY);
-                if(! ecCurves.containsKey(alg)){
-
-                    ecCurves.forEach((k,v) -> {
-                        System.out.println(k + ":"+v);
-                    });
+                if(! ecCurves.containsKey(alg)) {
                     throw new CoseException("Invalid Cose Algorithm");
                 }
                 byte[] x = (byte[]) coseKV.get(X_POINT);
                 byte[] y = (byte[]) coseKV.get(Y_POINT);
 
-                PublicKey publicKey = this.read(ecCurves.get(alg), x, y);
-                keyInfo = KeyInfo.builder().publicKey(publicKey).algorithm(ecCurves.get(alg)).build();
+                PublicKey publicKey = this.ecPublicKey(ecCurves.get(alg), x, y);
+                keyInfo = KeyInfo.builder()
+                        .publicKey(publicKey)
+                        .coseAlgorithm(coseAlgorithms.get(alg))
+                        .build();
                 break;
             case 3:
-                throw new CoseException("RSA not supported");
+                byte[] modulus = (byte[]) coseKV.get(N);
+                byte[] exponent = (byte[]) coseKV.get(E);
+                PublicKey rsaPublicKey = rsaPublicKey(modulus,exponent);
+                keyInfo = KeyInfo.builder()
+                        .publicKey(rsaPublicKey)
+                        // hard coded
+                        .coseAlgorithm(CoseAlgorithm.RS256)
+                        .build();
         }
         return keyInfo;
     }
 
-    public Map<String, ?> toKV(byte[] cosePublicKey) {
+    private PublicKey rsaPublicKey(byte[] modulus, byte[] exponent){
+        PublicKey publicKey = null;
+        try {
+            RSAPublicKeySpec spec = new RSAPublicKeySpec(new BigInteger(modulus), new BigInteger(exponent));
+            KeyFactory factory = KeyFactory.getInstance("RSA");
+            publicKey = factory.generatePublic(spec);
+        } catch(InvalidKeySpecException | NoSuchAlgorithmException e){
+            LOGGER.error(e.getMessage());
+            throw new CoseException(e);
+        }
+        return publicKey;
+    }
+    private Map<String, ?> toKV(byte[] cosePublicKey) {
         Map<String, ?> coseKV = null;
         try {
             coseKV = mapper.readValue(cosePublicKey, Map.class);
@@ -109,20 +126,18 @@ public class CoseMapper {
         return coseKV;
     }
 
-    public PublicKey read (ECCurve curve, byte[] x, byte[] y) {
+    private PublicKey ecPublicKey (ECCurve curve, byte[] x, byte[] y) {
 
         if(curve == null || x == null || y == null){
             throw new IllegalArgumentException("Invalid Argument");
         }
-
-        PublicKey key= null;
-
+        PublicKey key;
         try {
             BigInteger xPoint = new BigInteger(x);
             BigInteger yPoint = new BigInteger(y);
 
             ECPoint ecPoint = new ECPoint(xPoint, yPoint);
-            AlgorithmParameters parameters = AlgorithmParameters.getInstance("EC", "SunEC");
+            AlgorithmParameters parameters = AlgorithmParameters.getInstance("EC", "BC");
             parameters.init(new ECGenParameterSpec(curve.curveName()));
             ECParameterSpec ecParameters = parameters.getParameterSpec(ECParameterSpec.class);
             ECPublicKeySpec pubKeySpec = new ECPublicKeySpec(ecPoint, ecParameters);

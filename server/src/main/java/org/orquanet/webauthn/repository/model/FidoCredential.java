@@ -17,6 +17,7 @@
 package org.orquanet.webauthn.repository.model;
 
 import lombok.*;
+import org.orquanet.webauthn.crypto.KeyType;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -48,6 +49,9 @@ public class FidoCredential {
 
     @Column(name = "wa_credential_creation")
     private Date created;
+
+    @Column(name= "wa_cose_algorithm")
+    private int coseAlgorithm;
 
     @Basic(fetch = FetchType.LAZY)
     @Lob

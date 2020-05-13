@@ -10,13 +10,11 @@ import java.security.SecureRandom;
 public class FidoController {
 
     private static SecureRandom random = new SecureRandom();
-
     protected static byte[] challenge() {
         return challenge(30);
     }
 
     protected static byte[] challenge(int size){
-
         byte[] bytes = new byte[size];
         random.nextBytes(bytes);
         return bytes;

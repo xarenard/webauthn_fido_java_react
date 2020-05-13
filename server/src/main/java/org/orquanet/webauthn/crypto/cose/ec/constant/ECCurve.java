@@ -18,16 +18,18 @@ package org.orquanet.webauthn.crypto.cose.ec.constant;
 
 public enum ECCurve{
 
-    P256(1,"secp256r1"),
-    P384(2,"secp384r1"),
-    P521(3,"secp521r1");
+    P256(1,"secp256r1","SHA256withECDSA"),
+    P384(2,"secp384r1","SHA384withECDSA"),
+    P521(3,"secp521r1","SHA512withECDSA");
 
     private String curveName;
     private int coseId;
+    private String signatureAlgorithm;
 
-    ECCurve(int coseId, String curveName){
+    ECCurve(int coseId, String curveName, String signatureAlgorithm){
         this.coseId = coseId;
         this.curveName = curveName;
+        this.signatureAlgorithm = signatureAlgorithm;
     }
 
     public int coseId(){
@@ -36,5 +38,9 @@ public enum ECCurve{
 
     public String curveName(){
         return this.curveName;
+    }
+
+    public String signatureAlgorithm() {
+        return this.signatureAlgorithm;
     }
 }

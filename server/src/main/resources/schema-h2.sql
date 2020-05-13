@@ -1,5 +1,5 @@
 CREATE SCHEMA APP;
-
+CREATE TYPE key_type AS ENUM('RSA','ECDSA');
 CREATE SEQUENCE app.user_seq START 1 INCREMENT 1;
 
 CREATE TABLE app.user(id integer default nextval('app.user_seq'),
@@ -20,4 +20,5 @@ CREATE TABLE app.wa_user_credential(id integer default nextval('app.wa_credentia
                                 wa_credential_key oid,
                                 wa_credential_id VARCHAR(255),
                                 wa_credential_creation timestamp,
+                                wa_cose_algorithm integer,
                                 PRIMARY KEY (id));

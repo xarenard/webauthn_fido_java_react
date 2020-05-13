@@ -17,7 +17,7 @@
 package org.orquanet.webauthn.crypto;
 
 import lombok.Builder;
-import org.orquanet.webauthn.crypto.cose.ec.constant.ECCurve;
+import org.orquanet.webauthn.crypto.cose.CoseAlgorithm;
 
 import java.security.PublicKey;
 
@@ -26,14 +26,18 @@ import java.security.PublicKey;
 public class KeyInfo{
 
     private PublicKey publicKey;
-    private ECCurve algorithm;
+    private CoseAlgorithm coseAlgorithm;
+    private KeyType keyType;
 
     public PublicKey getPublicKey(){
         return this.publicKey;
     }
 
-    public ECCurve getAlgorithm(){
-        return algorithm;
+    public CoseAlgorithm getCoseAlgorithm() {
+        return this.coseAlgorithm;
     }
 
+    public KeyType getKeyType() {
+        return this.keyType;
+    }
 }

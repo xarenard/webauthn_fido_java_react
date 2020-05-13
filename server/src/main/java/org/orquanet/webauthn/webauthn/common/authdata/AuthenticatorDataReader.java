@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package org.orquanet.webauthn.webauthn.common.authdata;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -41,32 +40,21 @@ public class AuthenticatorDataReader {
     }
 
     public AuthenticatorData read(AttestationObject attestationObject){
-
-        AuthenticatorData.AuthenticatorDataBuilder attestationDataBuilder = AuthenticatorData.builder();
-
         byte[] authdata = Base64.getDecoder().decode(attestationObject.getAuthData());
         return this.read(authdata,AuthenticatorOperationType.MAKE_CREDENTIAL);
-
     }
 
     public AuthenticatorData read(AuthenticatorAssertion authenticatorAssertion){
-
-        AuthenticatorData.AuthenticatorDataBuilder attestationDataBuilder = AuthenticatorData.builder();
-
+        //AuthenticatorData.AuthenticatorDataBuilder attestationDataBuilder = AuthenticatorData.builder();
         byte[] authdata = Base64.getDecoder().decode(authenticatorAssertion.getResponse().getAuthenticatorData());
         return this.read(authdata,AuthenticatorOperationType.GET_ASSERTION);
-
     }
 
     protected AuthenticatorData read(byte[] authData, AuthenticatorOperationType authenticatorOperationType){
 
         AuthenticatorData.AuthenticatorDataBuilder attestationDataBuilder = AuthenticatorData.builder();
-
-
         attestationDataBuilder.authData(authData);
-
         attestationDataBuilder.authDataLength(authData.length);
-
         byte[] rpIdHash = Arrays.copyOfRange(authData,0,32);
 
         if(!Arrays.equals(DigestUtils.sha256(webAuthnConfig.getRelyingPartyId()),rpIdHash)){
@@ -108,6 +96,5 @@ public class AuthenticatorDataReader {
             attestationDataBuilder.credentialPublicKey(pk);
         }
         return attestationDataBuilder.build();
-
     }
 }

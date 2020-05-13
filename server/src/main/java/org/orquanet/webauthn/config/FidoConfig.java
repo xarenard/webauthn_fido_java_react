@@ -15,6 +15,7 @@
  */
 package org.orquanet.webauthn.config;
 
+import org.orquanet.webauthn.crypto.cose.CoseAlgorithm;
 import org.orquanet.webauthn.repository.CredentialRepository;
 import org.orquanet.webauthn.repository.UserRepository;
 import org.orquanet.webauthn.service.CredentialService;
@@ -24,6 +25,7 @@ import org.orquanet.webauthn.webauthn.assertion.validation.clientdata.ClientData
 import org.orquanet.webauthn.webauthn.assertion.validation.signature.AssertionSignatureVerifier;
 import org.orquanet.webauthn.webauthn.attestation.reader.AuthenticatorAttestationReader;
 import org.orquanet.webauthn.webauthn.attestation.validation.AuthenticatorAttestationValidator;
+import org.orquanet.webauthn.webauthn.attestation.validation.attestation.tpm.TPMAttestationValidator;
 import org.orquanet.webauthn.webauthn.attestation.validation.clientdata.ClientDataRegistrationValidation;
 import org.orquanet.webauthn.webauthn.attestation.validation.attestation.AttestationValidator;
 import org.orquanet.webauthn.webauthn.attestation.validation.attestation.fido2f.Fido2fAttestationValidator;
@@ -31,6 +33,7 @@ import org.orquanet.webauthn.webauthn.attestation.validation.attestation.packed.
 import org.orquanet.webauthn.webauthn.common.authdata.AuthenticatorDataReader;
 import org.orquanet.webauthn.webauthn.common.WebAuthnConfig;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,12 +42,13 @@ import org.springframework.context.support.ReloadableResourceBundleMessageSource
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
-import java.util.Base64;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Configuration
+@EnableConfigurationProperties(TPMConfigurations.class)
 @EnableJpaRepositories(basePackages = {"org.orquanet.webauthn.repository"})
-@PropertySource("classpath:webauthn.properties")
+@PropertySource({"classpath:webauthn.properties"})
 public class FidoConfig {
 
     @Value("${webauthn.origins.allowed}")
@@ -105,7 +109,7 @@ public class FidoConfig {
 
     @Bean
     public AttestationValidator attestationValidator(){
-        return new AttestationValidator(fido2fAttestationSignatureValidator(),packedAttestationValidatorResolver());
+        return new AttestationValidator(fido2fAttestationSignatureValidator(),packedAttestationValidatorResolver(),tpmAttestationValidator());
     }
 
     @Bean
@@ -115,12 +119,12 @@ public class FidoConfig {
 
     @Bean
     public AssertionSignatureVerifier assertionSignatureValidation() {
-        return new AssertionSignatureVerifier();
+        return new AssertionSignatureVerifier(coseAlgorithms());
     }
 
     @Bean
     public AuthenticatorAttestationReader authenticatorAttestationReader(){
-        return new AuthenticatorAttestationReader(authenticatorDataReader());
+        return new AuthenticatorAttestationReader(authenticatorDataReader(),coseAlgorithms());
     }
 
     @Bean
@@ -151,5 +155,23 @@ public class FidoConfig {
     @Bean
     public AuthenticatorAttestationValidator authenticatorAttestationValidator() {
         return new AuthenticatorAttestationValidator(clientDataRegistrationValidator(),attestationValidator());
+    }
+
+    @Bean
+    public TPMAttestationValidator tpmAttestationValidator(){
+        return new TPMAttestationValidator(tpmConfigurations());
+    }
+
+    @Bean
+    public Map<Integer, CoseAlgorithm> coseAlgorithms(){
+        return EnumSet.allOf(CoseAlgorithm.class)
+                .stream()
+                .map(ca -> new AbstractMap.SimpleEntry<Integer,CoseAlgorithm>(ca.getValue(), ca))
+                .collect(Collectors.toMap(Map.Entry::getKey,Map.Entry::getValue));
+    }
+
+    @Bean
+    public TPMConfigurations tpmConfigurations(){
+        return new TPMConfigurations();
     }
 }

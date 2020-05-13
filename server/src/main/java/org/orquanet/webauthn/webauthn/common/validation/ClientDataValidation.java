@@ -49,7 +49,7 @@ public class ClientDataValidation {
         try {
             return objectMapper.readValue(Base64.getUrlDecoder().decode(clientDataJSON), Map.class);
         } catch (IOException e) {
-            throw new ClietDataValidationException(e);
+            throw new ClientDataValidationException(e);
         }
 
     }

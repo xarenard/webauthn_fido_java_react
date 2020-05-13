@@ -16,15 +16,8 @@
 
 package org.orquanet.webauthn.webauthn.common.validation;
 
-public class ClietDataValidationException extends RuntimeException {
-    public ClietDataValidationException() {
-    }
-
-    public ClietDataValidationException(String message) {
-        super(message);
-    }
-
-    public ClietDataValidationException(Throwable cause) {
+public class ClientDataValidationException extends RuntimeException {
+    public ClientDataValidationException(Throwable cause) {
         super(cause);
     }
 }

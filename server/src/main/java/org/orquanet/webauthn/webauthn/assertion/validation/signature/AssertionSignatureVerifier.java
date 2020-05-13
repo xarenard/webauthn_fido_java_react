@@ -18,7 +18,9 @@ package org.orquanet.webauthn.webauthn.assertion.validation.signature;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.orquanet.webauthn.crypto.KeyInfo;
+import org.orquanet.webauthn.crypto.cose.CoseAlgorithm;
 import org.orquanet.webauthn.crypto.signature.SignatureVerifier;
+import org.orquanet.webauthn.repository.model.FidoCredential;
 import org.orquanet.webauthn.webauthn.assertion.data.AuthenticatorAssertion;
 import org.orquanet.webauthn.webauthn.assertion.validation.signature.exception.AssertionSignatureValidationException;
 import org.slf4j.Logger;
@@ -28,21 +30,38 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.util.Map;
 
 public class AssertionSignatureVerifier {
 
     @Autowired
     @Qualifier("base64urldecoder")
-    Base64.Decoder base64Decoder;
+    private Base64.Decoder base64Decoder;
+    private Map<Integer, CoseAlgorithm> coseAlgorithms;
 
-    public static Logger LOGGER = LoggerFactory.getLogger(AssertionSignatureVerifier.class);
+    public AssertionSignatureVerifier(Map<Integer, CoseAlgorithm> coseAlgorithms){
+        this.coseAlgorithms = coseAlgorithms;
+    }
+    private static Logger LOGGER = LoggerFactory.getLogger(AssertionSignatureVerifier.class);
 
-    public boolean verify(AuthenticatorAssertion authenticatorAssertion, KeyInfo keyInfo){
+    public boolean verify(AuthenticatorAssertion authenticatorAssertion, FidoCredential fidoCredential){
 
         boolean signatureValid;
+
+        byte[] publicKey = fidoCredential.getPublicKey();
+        Integer coseAlgorithmValue = fidoCredential.getCoseAlgorithm();
+        CoseAlgorithm coseAlgorithm = coseAlgorithms.get(coseAlgorithmValue);
+
         try {
+            KeyFactory keyFactory = KeyFactory.getInstance(coseAlgorithm.getKeyType(),"BC");
+            X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKey);
+            PublicKey pk = keyFactory.generatePublic(publicKeySpec);
+            KeyInfo keyInfo = KeyInfo.builder().publicKey(pk).coseAlgorithm(coseAlgorithm).build();
             String clientDataJSON = authenticatorAssertion.getResponse().getClientDataJSON();
             byte[] clientDataRaw = Base64.getDecoder().decode(clientDataJSON);
             byte[] clientDataHash = DigestUtils.sha256(clientDataRaw);
@@ -68,7 +87,6 @@ public class AssertionSignatureVerifier {
             LOGGER.error(e.getMessage());
             throw new AssertionSignatureValidationException(e);
         }
-
         return signatureValid;
     }
 }

@@ -21,7 +21,11 @@ import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.orquanet.webauthn.crypto.KeyType;
+import org.orquanet.webauthn.crypto.cose.CoseAlgorithm;
 import org.orquanet.webauthn.webauthn.attestation.constant.AttestationStatementFormat;
+import org.orquanet.webauthn.webauthn.attestation.model.tpm.TPMCertInfo;
+import org.orquanet.webauthn.webauthn.attestation.model.tpm.TPMPubArea;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,11 +34,15 @@ import java.util.Optional;
 @SuperBuilder
 public  class Attestation {
 
+    private CoseAlgorithm coseAlgorithm;
+    private KeyType keyType;
     private String signature;
     private AuthenticatorData authenticatorData;
     private AttestationStatementFormat fmtEnum;
     private Optional<List<byte[]>> x5c;
-
+    private Optional<String> version;
+    private Optional<TPMPubArea> pubArea;
+    private Optional <TPMCertInfo> certInfo;
 
     @Override
     public String toString() {

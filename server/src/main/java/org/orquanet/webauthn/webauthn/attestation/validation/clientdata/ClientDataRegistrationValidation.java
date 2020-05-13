@@ -13,7 +13,7 @@ public class ClientDataRegistrationValidation extends ClientDataValidation {
 
     private static final String CLIENT_DATA_CREATE_TYPE_VALUE = "webauthn.create";
 
-    public static Logger LOGGER = LoggerFactory.getLogger(ClientDataRegistrationValidation.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(ClientDataRegistrationValidation.class);
 
     public ClientDataRegistrationValidation(WebAuthnConfig webAuthnConfig) {
         super(webAuthnConfig);

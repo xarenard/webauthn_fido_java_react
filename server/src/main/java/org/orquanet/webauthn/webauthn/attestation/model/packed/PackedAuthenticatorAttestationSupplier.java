@@ -15,10 +15,16 @@ public class PackedAuthenticatorAttestationSupplier implements Supplier<Authenti
     @Override
     public AuthenticatorAttestation get() {
         if(attestation.getX5c().isPresent()){
-            return PackedAuthenticatorFullAttestation.builder().attestation(attestation).clientDataJSON(clientDataJson).build();
+            return PackedAuthenticatorFullAttestation.builder()
+                    .attestation(attestation)
+                    .clientDataJSON(clientDataJson)
+                    .build();
         }
         else {
-            return PackedAuthenticatorSelfAttestation.builder().attestation(attestation).clientDataJSON(clientDataJson).build();
+            return PackedAuthenticatorSelfAttestation.builder()
+                    .attestation(attestation)
+                    .clientDataJSON(clientDataJson)
+                    .build();
         }
     }
 }

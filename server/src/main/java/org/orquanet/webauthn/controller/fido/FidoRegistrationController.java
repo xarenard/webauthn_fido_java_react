@@ -143,7 +143,7 @@ public class FidoRegistrationController  extends FidoController {
             throw new RegistrationException("Invalid Fido User Id");
         }
 
-        AuthenticatorAttestation authenticatorAttestation = authenticatorAttestationReader.read(authenticatorAttestationResponseWrapper);
+        AuthenticatorAttestation authenticatorAttestation = authenticatorAttestationReader.readAttestation(authenticatorAttestationResponseWrapper);
 
         authenticatorAttestationValidator.validate(authenticatorAttestation, webauthnSession.getChallenge());
         userService.saveCredential(authenticatorAttestation, webauthnSession.getFidoUser());

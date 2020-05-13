@@ -24,8 +24,8 @@ public class SignatureVerifier {
 
 
     public boolean validate(final byte[] message, final byte[] signature, KeyInfo keyInfo) throws Exception {
-        //hard coded for the moment
-        Signature signatureObject = Signature.getInstance("SHA256withECDSA");
+        String algorithmName = keyInfo.getCoseAlgorithm().getSignatureAlgorithm();
+        Signature signatureObject = Signature.getInstance(algorithmName);
         signatureObject.initVerify(keyInfo.getPublicKey());
         signatureObject.update(message);
         return signatureObject.verify(signature);

@@ -17,21 +17,16 @@
 package org.orquanet.webauthn.webauthn.assertion.validation.signature.exception;
 
 public class AssertionSignatureValidationException extends RuntimeException {
-    public AssertionSignatureValidationException() {
-    }
-
+    public AssertionSignatureValidationException() { super(); }
     public AssertionSignatureValidationException(String message) {
         super(message);
     }
-
     public AssertionSignatureValidationException(String message, Throwable cause) {
         super(message, cause);
     }
-
     public AssertionSignatureValidationException(Throwable cause) {
         super(cause);
     }
-
     public AssertionSignatureValidationException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }

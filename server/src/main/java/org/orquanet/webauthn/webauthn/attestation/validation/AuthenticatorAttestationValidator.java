@@ -9,8 +9,7 @@ public class AuthenticatorAttestationValidator {
     private ClientDataRegistrationValidation clientDataRegistrationValidation;
     private AttestationValidator attestationValidator;
 
-    public void validate(AuthenticatorAttestation authenticatorAttestation, String challenge){
-
+    public void validate(AuthenticatorAttestation authenticatorAttestation, String challenge) {
         this.clientDataRegistrationValidation.validate(authenticatorAttestation.getClientDataJSON(),challenge);
         this.attestationValidator.verify(authenticatorAttestation);
     }

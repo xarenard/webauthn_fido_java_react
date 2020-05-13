@@ -1,10 +1,26 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.orquanet.webauthn.webauthn.attestation.validation.attestation.packed.full;
 
 import org.orquanet.webauthn.crypto.KeyInfo;
 import org.orquanet.webauthn.crypto.utils.X509Utils;
 import org.orquanet.webauthn.webauthn.attestation.model.AuthenticatorAttestation;
 import org.orquanet.webauthn.webauthn.attestation.validation.attestation.packed.PackedAttestationValidator;
-import org.orquanet.webauthn.webauthn.attestation.validation.exception.X5cValidationException;
+import org.orquanet.webauthn.webauthn.attestation.validation.exception.X5cAttestationValidationException;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
@@ -27,7 +43,7 @@ public class PackedFullAttestationValidator implements PackedAttestationValidato
             int version = x509Certificate.getVersion();
 
             if (version != 3) {
-                throw new X5cValidationException("Invalid Certificate Version");
+                throw new X5cAttestationValidationException("Invalid Certificate Version");
             }
 
             Principal subjectDN = x509Certificate.getSubjectDN();
@@ -40,17 +56,17 @@ public class PackedFullAttestationValidator implements PackedAttestationValidato
 
             Rdn organisationRDN = rdnsMap.get("OU");
             if(organisationRDN == null || !"Authenticator Attestation".equals(organisationRDN.getValue().toString())){
-                throw new X5cValidationException("Invalid Organisation Unit");
+                throw new X5cAttestationValidationException("Invalid Organisation Unit");
             }
 
             Rdn cnRdn = rdnsMap.get("CN");
             if(cnRdn == null || cnRdn.getValue() == null || "".equals(cnRdn.getValue().toString().trim() )){
-                throw new X5cValidationException("Invalid Common name.");
+                throw new X5cAttestationValidationException("Invalid Common name.");
             }
 
             int basicConstraints = x509Certificate.getBasicConstraints();
             if(basicConstraints != -1){
-                throw new X5cValidationException("Invalid Basic Constraints.");
+                throw new X5cAttestationValidationException("Invalid Basic Constraints.");
             }
 
             Set<String> keys = rdnsMap.keySet();
@@ -68,17 +84,20 @@ public class PackedFullAttestationValidator implements PackedAttestationValidato
 
         }
         catch(InvalidNameException e){
-            throw new X5cValidationException(e);
+            throw new X5cAttestationValidationException(e);
         }
     }
 
     @Override
-    public boolean verify(AuthenticatorAttestation authenticatorAttestation) {
+    public void verify(AuthenticatorAttestation authenticatorAttestation) {
             Optional<List<byte[]>> certs = authenticatorAttestation.getAttestation().getX5c();
             X509Certificate x509Certificate = X509Utils.x509CertificateFromBytesArray(certs.get().get(0));
             this.verifyX509Certificate(x509Certificate);
 
-            KeyInfo keyInfo = KeyInfo.builder().publicKey(x509Certificate.getPublicKey()).build();
-            return this.verifySignature(authenticatorAttestation, keyInfo);
+            KeyInfo keyInfo = KeyInfo.builder()
+                    .publicKey(x509Certificate.getPublicKey())
+                    .coseAlgorithm(authenticatorAttestation.getAttestation().getCoseAlgorithm())
+                    .build();
+            this.verifySignature(authenticatorAttestation, keyInfo);
     }
 }

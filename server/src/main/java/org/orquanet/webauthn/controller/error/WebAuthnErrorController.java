@@ -33,7 +33,7 @@ import java.util.Optional;
 @RestControllerAdvice
 public class WebAuthnErrorController {
 
-    public static Logger LOGGER = LoggerFactory.getLogger(WebAuthnErrorController.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(WebAuthnErrorController.class);
 
     @ExceptionHandler(NumberFormatException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
