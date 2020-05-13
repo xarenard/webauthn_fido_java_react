@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.spec.*;
+import java.util.AbstractMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -52,10 +54,16 @@ public class CoseMapper {
     private Map<Integer, ECCurve> ecCurves = new HashMap();
     private Map<Integer, CoseAlgorithm> coseAlgorithms;
 
+
     public CoseMapper() {
         ecCurves.putAll(allOf(ECCurve.class)
                 .stream()
                 .collect(Collectors.toMap(ECCurve::coseId, Function.identity())));
+
+        coseAlgorithms = EnumSet.allOf(CoseAlgorithm.class)
+                .stream()
+                .map(ca -> new AbstractMap.SimpleEntry<Integer,CoseAlgorithm>(ca.getValue(), ca))
+                .collect(Collectors.toMap(Map.Entry::getKey,Map.Entry::getValue));
     }
 
     public KeyInfo keyInfo(byte[] coseKey) {
@@ -79,9 +87,12 @@ public class CoseMapper {
                 byte[] y = (byte[]) coseKV.get(Y_POINT);
 
                 PublicKey publicKey = this.ecPublicKey(ecCurves.get(alg), x, y);
+
+                // hardcoded
+                CoseAlgorithm coseAlgorithm = CoseAlgorithm.ES256;
                 keyInfo = KeyInfo.builder()
                         .publicKey(publicKey)
-                        .coseAlgorithm(coseAlgorithms.get(alg))
+                        .coseAlgorithm(coseAlgorithm)
                         .build();
                 break;
             case 3:

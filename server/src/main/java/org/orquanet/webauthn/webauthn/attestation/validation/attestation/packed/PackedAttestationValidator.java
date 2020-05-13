@@ -19,7 +19,6 @@ package org.orquanet.webauthn.webauthn.attestation.validation.attestation.packed
 import org.apache.commons.codec.digest.DigestUtils;
 import org.orquanet.webauthn.crypto.KeyInfo;
 import org.orquanet.webauthn.crypto.signature.SignatureVerifier;
-import org.orquanet.webauthn.webauthn.attestation.model.Attestation;
 import org.orquanet.webauthn.webauthn.attestation.model.AuthenticatorAttestation;
 import org.orquanet.webauthn.webauthn.attestation.validation.exception.AttestationValidationException;
 
@@ -48,6 +47,7 @@ public interface PackedAttestationValidator {
                 throw new AttestationValidationException("Invalid Exception");
             }
         }catch(Exception e){
+            e.printStackTrace();
             throw new AttestationValidationException(e.getMessage());
         }
     }
