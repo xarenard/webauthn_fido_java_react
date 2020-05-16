@@ -93,7 +93,6 @@
             <version>5.4.6.Final</version>
         </dependency>
     </dependencies>
-
     <build>
         <finalName>spring-boot-security</finalName>
         <plugins>

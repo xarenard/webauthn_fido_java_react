@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 public enum KeyType {
 
-    RESERVED,OPK,RSA,ECDSA;
+    RESERVED,OPK,ECDSA,RSA;
 
     private static Map<Integer,KeyType> keyTypeTable;
 
@@ -21,5 +21,4 @@ public enum KeyType {
     public static Optional<KeyType> fromInt(Integer keyTypeValue){
         return Optional.ofNullable(keyTypeTable.get(keyTypeValue));
     }
-
 }
