@@ -19,7 +19,7 @@ public enum CoseAlgorithm {
     private String signatureAlgorithm;
     private String keyType;
 
-    private CoseAlgorithm(int value, String description, String messageDigestAlgorithm,String signatureAlgorithm,String keyType) {
+    CoseAlgorithm(int value, String description, String messageDigestAlgorithm, String signatureAlgorithm, String keyType) {
         this.value = value;
         this.description = description;
         this.messageDigestAlgorithm = messageDigestAlgorithm;

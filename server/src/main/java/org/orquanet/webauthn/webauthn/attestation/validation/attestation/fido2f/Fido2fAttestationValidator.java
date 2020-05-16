@@ -18,9 +18,8 @@ package org.orquanet.webauthn.webauthn.attestation.validation.attestation.fido2f
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.orquanet.webauthn.crypto.KeyInfo;
-import org.orquanet.webauthn.crypto.KeyType;
+import org.orquanet.webauthn.crypto.cose.KeyType;
 import org.orquanet.webauthn.crypto.cose.CoseAlgorithm;
-import org.orquanet.webauthn.crypto.cose.ec.constant.ECCurve;
 import org.orquanet.webauthn.crypto.cose.mapper.CoseMapper;
 import org.orquanet.webauthn.crypto.signature.SignatureVerifier;
 import org.orquanet.webauthn.crypto.utils.X509Utils;
@@ -42,7 +41,6 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
 import java.util.Base64;
 import java.util.Optional;
-import java.util.function.Function;
 
 public class Fido2fAttestationValidator  {
 

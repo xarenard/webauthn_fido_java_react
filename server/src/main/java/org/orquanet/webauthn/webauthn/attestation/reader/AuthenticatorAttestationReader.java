@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.orquanet.webauthn.crypto.KeyType;
+import org.orquanet.webauthn.crypto.cose.KeyType;
 import org.orquanet.webauthn.crypto.cose.CoseAlgorithm;
 import org.orquanet.webauthn.webauthn.attestation.constant.AttestationStatementFormat;
 import org.orquanet.webauthn.webauthn.attestation.data.AttestationObject;
@@ -113,7 +113,6 @@ public class AuthenticatorAttestationReader {
             TPMPubArea pubArea = readPubArea(pubAreaRawString);
             pubAreaOptional = Optional.of(pubArea);
 
-
             //certinfo
             String certInfoRawString = attestationObject.getAttestationStatement().getCertInfo();
             TPMCertInfo certInfo = readCertInfo(certInfoRawString, clientDataJson,authenticatorData,pubArea,coseAlgorithm);
@@ -144,8 +143,6 @@ public class AuthenticatorAttestationReader {
         //alg name - 2 bytes
         byte[] algorithmBytes = Arrays.copyOfRange(pubAreaBytes,2,4);
         int algorithm = (algorithmBytes[0] &0XFF) << 8 | algorithmBytes[1] &0XFF;
-
-
 
         // TODO
         // object attributes - 4 bytes
@@ -236,10 +233,6 @@ public class AuthenticatorAttestationReader {
 
         //extra data
         byte[] extraData = Arrays.copyOfRange(certInfoBytes,10 +qualifiedSignerLength,extraDataOffset);
-
-
-
-
         verifyExtraData(clientDataJson, authenticatorData, extraData,coseAlgorithm);
 
         int clockOffset = 17 + extraDataOffset;
@@ -293,7 +286,6 @@ public class AuthenticatorAttestationReader {
         byte[] clientDataRaw = Base64.getDecoder().decode(clientDataJson);
         byte[] clientDataHash = DigestUtils.sha256(clientDataRaw);
 
-       // String algorithms = coseAlgorithms.get()
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             out.write(authenticatorData.getAuthData());

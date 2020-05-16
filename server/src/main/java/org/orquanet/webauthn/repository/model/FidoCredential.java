@@ -17,7 +17,6 @@
 package org.orquanet.webauthn.repository.model;
 
 import lombok.*;
-import org.orquanet.webauthn.crypto.KeyType;
 
 import javax.persistence.*;
 import java.util.Date;

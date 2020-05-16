@@ -21,7 +21,7 @@ import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.orquanet.webauthn.crypto.KeyType;
+import org.orquanet.webauthn.crypto.cose.KeyType;
 import org.orquanet.webauthn.crypto.cose.CoseAlgorithm;
 import org.orquanet.webauthn.webauthn.attestation.constant.AttestationStatementFormat;
 import org.orquanet.webauthn.webauthn.attestation.model.tpm.TPMCertInfo;

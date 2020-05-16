@@ -35,14 +35,10 @@ public class CredentialService {
     }
 
     public Collection<FidoCredential> credentials( final String fidoUserId){
-
         return credentialRepository.findCredentials(fidoUserId);
-
     }
 
     public Collection<String> credentialIds( final String fidoUserId){
-
         return credentialRepository.findCredentialIds(fidoUserId);
-
     }
 }

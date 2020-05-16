@@ -18,6 +18,7 @@ package org.orquanet.webauthn.crypto;
 
 import lombok.Builder;
 import org.orquanet.webauthn.crypto.cose.CoseAlgorithm;
+import org.orquanet.webauthn.crypto.cose.KeyType;
 
 import java.security.PublicKey;
 

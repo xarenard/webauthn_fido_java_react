@@ -15,9 +15,11 @@
  */
 
 package org.orquanet.webauthn.crypto.cose.mapper;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 import org.orquanet.webauthn.crypto.KeyInfo;
+import org.orquanet.webauthn.crypto.cose.KeyType;
 import org.orquanet.webauthn.crypto.cose.CoseAlgorithm;
 import org.orquanet.webauthn.crypto.cose.ec.constant.ECCurve;
 import org.orquanet.webauthn.crypto.cose.exception.CoseException;
@@ -28,10 +30,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.spec.*;
-import java.util.AbstractMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -55,13 +54,12 @@ public class CoseMapper {
     private Map<Integer, ECCurve> ecCurves = new HashMap();
     private Map<Integer, CoseAlgorithm> coseAlgorithms;
 
-
     public CoseMapper() {
         ecCurves.putAll(allOf(ECCurve.class)
                 .stream()
                 .collect(Collectors.toMap(ECCurve::coseId, Function.identity())));
 
-        coseAlgorithms = EnumSet.allOf(CoseAlgorithm.class)
+        coseAlgorithms = allOf(CoseAlgorithm.class)
                 .stream()
                 .map(ca -> new AbstractMap.SimpleEntry<Integer,CoseAlgorithm>(ca.getValue(), ca))
                 .collect(Collectors.toMap(Map.Entry::getKey,Map.Entry::getValue));
@@ -75,11 +73,15 @@ public class CoseMapper {
             throw new CoseException("Missing Kty Key");
         }
         Integer ktyId = (Integer) coseKV.get(KTY_KEY);
+        Optional<KeyType> keytypeOptional = KeyType.fromInt(ktyId);
+        KeyType keyType = keytypeOptional.orElseThrow(CoseException::new);
 
-        switch (ktyId) {
-            case 1:
+        switch (keyType) {
+            case RESERVED:
+                throw new CoseException("Reserved not supported");
+            case OPK:
                 throw new CoseException("OPK not supported");
-            case 2:
+            case ECDSA:
                 Integer alg = (Integer) coseKV.get(ALG_KEY);
                 if(! ecCurves.containsKey(alg)) {
                     throw new CoseException("Invalid Cose Algorithm");
@@ -89,15 +91,13 @@ public class CoseMapper {
 
                 PublicKey publicKey = this.ecPublicKey(ecCurves.get(alg), x, y);
                 ECCurve ecCurve = ecCurves.get(alg);
-
                 CoseAlgorithm coseAlgorithm = ecCurveToCoseAlgorithm(ecCurve);
-
                 keyInfo = KeyInfo.builder()
                         .publicKey(publicKey)
                         .coseAlgorithm(coseAlgorithm)
                         .build();
                 break;
-            case 3:
+            case RSA:
                 byte[] modulus = (byte[]) coseKV.get(N);
                 byte[] exponent = (byte[]) coseKV.get(E);
                 PublicKey rsaPublicKey = rsaPublicKey(modulus,exponent);
