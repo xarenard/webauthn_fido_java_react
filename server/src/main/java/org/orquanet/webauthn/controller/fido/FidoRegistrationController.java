@@ -68,7 +68,7 @@ public class FidoRegistrationController  extends FidoController {
     public ResponseEntity<PublicKeyCredentialCreationOptions> register(@RequestBody UserDto userDto, HttpServletRequest request) {//@ModelAttribute("registrationsession") RegistrationSession registrationSession) {
 
         // should be login or identification instead
-        Optional<FidoUser> fidoUserOptional = userService.findUser(userDto.getEmail());
+        Optional<FidoUser> fidoUserOptional = userService.findFidoUser(userDto.getEmail());
         FidoUser fidoUser = fidoUserOptional.orElseThrow(UserNotFoundException::new);
         Set<PublicKeyCredentialDescriptor> allowCredentials = fidoUser
                 .getFidoCredentials()

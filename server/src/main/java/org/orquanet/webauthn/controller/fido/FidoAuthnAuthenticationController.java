@@ -18,8 +18,6 @@ package org.orquanet.webauthn.controller.fido;
 
 import org.orquanet.webauthn.controller.session.WebauthnSession;
 import org.orquanet.webauthn.controller.user.dto.UserDto;
-import org.orquanet.webauthn.crypto.KeyInfo;
-import org.orquanet.webauthn.crypto.cose.CoseAlgorithm;
 import org.orquanet.webauthn.repository.model.FidoCredential;
 import org.orquanet.webauthn.repository.model.FidoUser;
 import org.orquanet.webauthn.service.CredentialService;
@@ -28,21 +26,17 @@ import org.orquanet.webauthn.webauthn.assertion.data.AuthenticatorAssertion;
 import org.orquanet.webauthn.webauthn.assertion.data.PublicKeyCredentialRequestOptions;
 import org.orquanet.webauthn.webauthn.assertion.exception.AuthenticationException;
 import org.orquanet.webauthn.webauthn.assertion.reader.AuthenticatorAssertionReader;
-import org.orquanet.webauthn.webauthn.assertion.validation.clientdata.ClientDataAuthenticationValidation;
 import org.orquanet.webauthn.webauthn.assertion.validation.signature.AssertionSignatureVerifier;
 import org.orquanet.webauthn.webauthn.attestation.exception.RegistrationException;
 import org.orquanet.webauthn.webauthn.common.data.PublicKeyCredentialDescriptor;
+import org.orquanet.webauthn.webauthn.exception.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.security.KeyFactory;
-import java.security.PublicKey;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -71,8 +65,8 @@ public class FidoAuthnAuthenticationController  extends FidoController {
     @ResponseStatus(value = HttpStatus.OK)
     public PublicKeyCredentialRequestOptions authenticateInit(@RequestBody UserDto userDto,HttpServletRequest request){
         String email = userDto.getEmail();
-        Optional<FidoUser> fidoUserOptional = userService.findUser(email);
-        FidoUser fidoUser = fidoUserOptional.orElseThrow(AuthenticationException::new);
+        Optional<FidoUser> fidoUserOptional = userService.findFidoUser(email);
+        FidoUser fidoUser = fidoUserOptional.orElseThrow(UserNotFoundException::new);
 
         Set<PublicKeyCredentialDescriptor> allowCredentials = fidoUser
                                     .getFidoCredentials()

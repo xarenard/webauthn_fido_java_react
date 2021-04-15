@@ -68,7 +68,7 @@ public class WebAuthnErrorController {
     }
 
     @ExceptionHandler(UserNotFoundException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody
     public ErrorDetails userNotFoundException(UserNotFoundException e){
 

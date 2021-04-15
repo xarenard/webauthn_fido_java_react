@@ -16,23 +16,17 @@
 
 import React from 'react';
 
-class InputForm extends React.Component{
+const InputForm = (props) => {
 
-    constructor(props) {
-        super(props);
-        this.handleInputChange = this.handleInputChange.bind(this);
-    }
+    const handleInputChange = (e) =>{
+        props.onChangeText(e);
+    };
 
-    handleInputChange(e){
-        this.props.onChangeText(e);
-    }
-    render(){
-        const {value,type,name} = this.props;
-        return (
+    const {value,type,name} = props;
+    return (
         <input className="pa2  w-100"
-               type={type} name={name} id="email-address"  value={value} onChange={this.handleInputChange} />
+               type={type} name={name} id="email-address"  value={value} onChange={handleInputChange} />
         )
-    }
-}
+};
 
 export default InputForm;

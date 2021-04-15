@@ -17,6 +17,7 @@ package org.orquanet.webauthn.config;
 
 import org.orquanet.webauthn.crypto.cose.CoseAlgorithm;
 import org.orquanet.webauthn.repository.CredentialRepository;
+import org.orquanet.webauthn.repository.FidoUserRepository;
 import org.orquanet.webauthn.repository.UserRepository;
 import org.orquanet.webauthn.service.CredentialService;
 import org.orquanet.webauthn.service.UserService;
@@ -64,8 +65,8 @@ public class FidoConfig {
     private String relyingPartyName;
 
     @Bean
-    public UserService userService(UserRepository userRepository){
-        return new UserService(userRepository);
+    public UserService userService(FidoUserRepository fidoUserRepository, UserRepository userRepository){
+        return new UserService(fidoUserRepository,userRepository);
     }
 
     @Bean
