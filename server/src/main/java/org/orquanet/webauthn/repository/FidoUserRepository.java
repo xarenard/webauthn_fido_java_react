@@ -17,7 +17,6 @@
 package org.orquanet.webauthn.repository;
 
 import org.orquanet.webauthn.repository.model.FidoUser;
-import org.orquanet.webauthn.repository.model.User;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -27,12 +26,10 @@ import java.util.Optional;
 
 @Repository
 
-public interface UserRepository extends CrudRepository<User,Long> {
+public interface FidoUserRepository<T> extends CrudRepository<FidoUser,Long> {
 
-    @Query("SELECT u FROM User u WHERE u.email= :email")
-    Optional<User> findUserByMail(@Param("email") final String email);
-
-
+    @Query("SELECT fu FROM FidoUser fu LEFT JOIN  fu.user u  LEFT JOIN fu.fidoCredentials c  WHERE u.email= :email")
+    Optional<FidoUser> findFidoUserDetailsByMail(@Param("email") final String email);
 
 
 

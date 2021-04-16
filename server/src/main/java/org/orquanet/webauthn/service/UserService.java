@@ -17,25 +17,36 @@
 package org.orquanet.webauthn.service;
 
 import org.orquanet.webauthn.crypto.KeyInfo;
+import org.orquanet.webauthn.repository.FidoUserRepository;
 import org.orquanet.webauthn.repository.UserRepository;
 import org.orquanet.webauthn.repository.model.FidoCredential;
 import org.orquanet.webauthn.repository.model.FidoUser;
+import org.orquanet.webauthn.repository.model.User;
 import org.orquanet.webauthn.webauthn.attestation.model.AuthenticatorAttestation;
 
 import java.util.Base64;
 import java.util.Date;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 public class UserService {
 
-    private UserRepository repository;
+    private FidoUserRepository fidoUserRepository;
 
-    public UserService(UserRepository repository){
-        this.repository = repository;
+    private UserRepository userRepository;
+
+    public UserService(FidoUserRepository fidoUserRepository, UserRepository userRepository){
+        this.fidoUserRepository = fidoUserRepository;
+        this.userRepository = userRepository;
     }
 
-    public Optional<FidoUser> findUser(String email){
-        return this.repository.findFidoUserDetailsByMail(email);
+
+    public Optional<User> findUserByEmail(final String email){
+        return this.userRepository.findUserByMail(email);
+    }
+
+    public Optional<FidoUser> findFidoUser(String email){
+        return this.fidoUserRepository.findFidoUserDetailsByMail(email);
     }
 
     public void saveCredential(AuthenticatorAttestation authenticatorAttestation,FidoUser fidoUser){
@@ -48,6 +59,6 @@ public class UserService {
                 .coseAlgorithm(authenticatorAttestation.getAttestation().getCoseAlgorithm().getValue())
                 .fidoUser(fidoUser)
                 .build();
-        this.repository.save(fidoCredential);
+        this.fidoUserRepository.save(fidoCredential);
     }
 }

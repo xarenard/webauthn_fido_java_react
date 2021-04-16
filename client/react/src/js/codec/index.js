@@ -15,7 +15,6 @@
  */
 
 const base64ToArray = (value) => {
-    console.log(value);
     return Uint8Array.from(atob(value).split('').map((c) => {
         return c.charCodeAt(0);
     }));
